@@ -1,63 +1,39 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { ScrollScene, SceneReveal } from '@/components/motion/ScrollScene'
 import { Glass } from '@/components/ui/Glass'
 
 export function Details() {
-  const [visible, setVisible] = useState(false)
-  const sectionRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <section
-      ref={sectionRef}
+    <ScrollScene
       id="details"
-      className="py-20 px-4 max-w-4xl mx-auto"
+      className="relative"
+      innerClassName="py-20 px-4 max-w-4xl mx-auto"
     >
-      <div
-        className={`transition-all duration-[600ms] ${
-          visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}
-      >
-        <Glass variant="panel" className="space-y-8">
+      <Glass variant="panel" className="space-y-8">
+        <SceneReveal start={0.16} duration={0.32}>
+          <h2 className="font-display text-3xl md:text-4xl text-dark-gray mb-6">
+            Venue & Schedule
+          </h2>
+        </SceneReveal>
+        <SceneReveal start={0.28} duration={0.34} className="space-y-4 text-medium-gray">
           <div>
-            <h2 className="font-display text-3xl md:text-4xl text-dark-gray mb-6">
-              Venue & Schedule
-            </h2>
-            <div className="space-y-4 text-medium-gray">
-              <div>
-                <h3 className="font-semibold text-dark-gray mb-1">Location</h3>
-                <p>Sunset Gardens</p>
-                <p>123 Vineyard Lane</p>
-                <p>Napa Valley, CA 94558</p>
-                <a
-                  href="https://maps.google.com/?q=Sunset+Gardens+Napa+Valley"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-light-orange hover:underline mt-2 inline-block"
-                >
-                  View on Google Maps →
-                </a>
-              </div>
-            </div>
+            <h3 className="font-semibold text-dark-gray mb-1">Location</h3>
+            <p>Sunset Gardens</p>
+            <p>123 Vineyard Lane</p>
+            <p>Napa Valley, CA 94558</p>
+            <a
+              href="https://maps.google.com/?q=Sunset+Gardens+Napa+Valley"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-light-orange hover:underline mt-2 inline-block"
+            >
+              View on Google Maps →
+            </a>
           </div>
+        </SceneReveal>
 
+        <SceneReveal start={0.38} duration={0.32}>
           <div>
             <h3 className="font-display text-2xl text-dark-gray mb-4">Schedule</h3>
             <div className="space-y-3">
@@ -79,7 +55,9 @@ export function Details() {
               </div>
             </div>
           </div>
+        </SceneReveal>
 
+        <SceneReveal start={0.48} duration={0.3}>
           <div>
             <h3 className="font-display text-2xl text-dark-gray mb-4">Dress Code</h3>
             <p className="text-medium-gray">
@@ -87,7 +65,9 @@ export function Details() {
               complement the sunset theme. Please avoid white.
             </p>
           </div>
+        </SceneReveal>
 
+        <SceneReveal start={0.56} duration={0.3}>
           <div>
             <h3 className="font-display text-2xl text-dark-gray mb-4">Gifts</h3>
             <p className="text-medium-gray">
@@ -95,7 +75,9 @@ export function Details() {
               a gift, we have a registry available. Please contact us for details.
             </p>
           </div>
+        </SceneReveal>
 
+        <SceneReveal start={0.64} duration={0.3}>
           <div>
             <h3 className="font-display text-2xl text-dark-gray mb-4">Contact</h3>
             <p className="text-medium-gray">
@@ -109,8 +91,8 @@ export function Details() {
               Phone: (555) 123-4567
             </p>
           </div>
-        </Glass>
-      </div>
-    </section>
+        </SceneReveal>
+      </Glass>
+    </ScrollScene>
   )
 }

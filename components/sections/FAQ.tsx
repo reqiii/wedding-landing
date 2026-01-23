@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
+import { ScrollScene, SceneReveal } from '@/components/motion/ScrollScene'
 import { Glass } from '@/components/ui/Glass'
 
 interface FAQItem {
@@ -37,62 +38,39 @@ const faqs: FAQItem[] = [
 
 export function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
-  const [visible, setVisible] = useState(false)
-  const sectionRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true)
-        }
-      },
-      { threshold: 0.1 }
-    )
-
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current)
-    }
-
-    return () => observer.disconnect()
-  }, [])
 
   return (
-    <section
-      ref={sectionRef}
+    <ScrollScene
       id="faq"
-      className="py-20 px-4 max-w-4xl mx-auto"
+      className="relative"
+      innerClassName="py-20 px-4 max-w-4xl mx-auto"
     >
-      <div
-        className={`transition-all duration-[600ms] ${
-          visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}
-      >
-        <Glass variant="panel">
+      <Glass variant="panel">
+        <SceneReveal start={0.16} duration={0.32}>
           <h2 className="font-display text-3xl md:text-4xl text-dark-gray mb-8 text-center">
             Frequently Asked Questions
           </h2>
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div key={index} className="border-b border-white/20 last:border-0 pb-4 last:pb-0">
-                <button
-                  onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                  className="w-full text-left flex justify-between items-center gap-4 focus-ring rounded-medium p-2 -m-2"
-                  aria-expanded={openIndex === index}
-                >
-                  <h3 className="font-semibold text-dark-gray pr-4">{faq.question}</h3>
-                  <span className="text-light-orange text-xl flex-shrink-0">
-                    {openIndex === index ? '−' : '+'}
-                  </span>
-                </button>
-                {openIndex === index && (
-                  <p className="text-medium-gray mt-3 pl-2">{faq.answer}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </Glass>
-      </div>
-    </section>
+        </SceneReveal>
+        <SceneReveal start={0.3} duration={0.36} className="space-y-4">
+          {faqs.map((faq, index) => (
+            <div key={index} className="border-b border-white/20 last:border-0 pb-4 last:pb-0">
+              <button
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="w-full text-left flex justify-between items-center gap-4 focus-ring rounded-medium p-2 -m-2"
+                aria-expanded={openIndex === index}
+              >
+                <h3 className="font-semibold text-dark-gray pr-4">{faq.question}</h3>
+                <span className="text-light-orange text-xl flex-shrink-0">
+                  {openIndex === index ? '−' : '+'}
+                </span>
+              </button>
+              {openIndex === index && (
+                <p className="text-medium-gray mt-3 pl-2">{faq.answer}</p>
+              )}
+            </div>
+          ))}
+        </SceneReveal>
+      </Glass>
+    </ScrollScene>
   )
 }
