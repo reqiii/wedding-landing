@@ -34,8 +34,8 @@ export function QuickCards() {
         {cards.map((card) => (
           <Glass
             key={card.title}
-            variant="card"
-            className="h-full text-center bg-white/90 backdrop-blur-sm"
+            variant="hero"
+            className="h-full text-center"
           >
             <div className="mb-4 text-4xl">{card.icon}</div>
             <h3 className="font-display text-2xl text-dark-gray mb-2">{card.title}</h3>
