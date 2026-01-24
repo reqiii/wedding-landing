@@ -37,7 +37,7 @@ export function Hero() {
       {videoEnabled && (
         <video
           className="absolute inset-0 w-full h-full object-cover"
-          src="/api/hero-video"
+          src="/api/hero-main-video"
           autoPlay
           loop
           muted

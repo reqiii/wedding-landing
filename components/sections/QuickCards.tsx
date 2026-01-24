@@ -1,6 +1,6 @@
 'use client'
 
-import { ScrollScene, SceneReveal } from '@/components/motion/ScrollScene'
+import { ScrollScrubVideoSection } from '@/components/ScrollScrubVideoSection'
 import { Glass } from '@/components/ui/Glass'
 
 interface Card {
@@ -29,29 +29,20 @@ const cards: Card[] = [
 
 export function QuickCards() {
   return (
-    <ScrollScene
-      id="quick-info"
-      className="relative"
-      innerClassName="py-20 px-4 max-w-6xl mx-auto"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {cards.map((card, index) => (
-          <SceneReveal
+    <ScrollScrubVideoSection className="bg-black" heightVh={260} id="quick-info">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+        {cards.map((card) => (
+          <Glass
             key={card.title}
-            start={0.22 + index * 0.08}
-            duration={0.3}
-            distance={12}
+            variant="card"
+            className="h-full text-center bg-white/90 backdrop-blur-sm"
           >
-            <Glass variant="card" className="h-full text-center">
-              <div className="text-4xl mb-4">{card.icon}</div>
-              <h3 className="font-display text-2xl text-dark-gray mb-2">
-                {card.title}
-              </h3>
-              <p className="text-medium-gray">{card.description}</p>
-            </Glass>
-          </SceneReveal>
+            <div className="mb-4 text-4xl">{card.icon}</div>
+            <h3 className="font-display text-2xl text-dark-gray mb-2">{card.title}</h3>
+            <p className="text-medium-gray">{card.description}</p>
+          </Glass>
         ))}
       </div>
-    </ScrollScene>
+    </ScrollScrubVideoSection>
   )
 }

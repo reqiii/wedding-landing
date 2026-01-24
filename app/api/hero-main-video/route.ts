@@ -1,4 +1,4 @@
-import { createReadStream, existsSync } from 'fs'
+import { createReadStream } from 'fs'
 import { stat } from 'fs/promises'
 import path from 'path'
 import { Readable } from 'stream'
@@ -6,40 +6,17 @@ import type { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
 
-const VIDEO_FILES = {
-  '1080': 'hero_scroll_1080p_iframe.mp4',
-  '720': 'hero_scroll_720p_iframe.mp4',
-} as const
-
-const POSTER_FILE = 'hero_poster.jpg'
-
-function resolveAssetPath(fileName: string) {
-  const rootCandidate = path.join(process.cwd(), fileName)
-  if (existsSync(rootCandidate)) {
-    return rootCandidate
-  }
-
-  return path.join(process.cwd(), 'app', 'api', 'hero-video', fileName)
-}
-
 export async function GET(request: NextRequest) {
+  const videoPath = path.join(process.cwd(), 'Samet.mp4')
   const isDev = process.env.NODE_ENV !== 'production'
-  const { searchParams } = request.nextUrl
-  const version = searchParams.get('v') ?? '1080'
-  const isPoster = searchParams.get('poster') === '1' || searchParams.get('asset') === 'poster'
-  const cacheControl = isDev ? 'no-store' : 'public, max-age=31536000, immutable'
-  const fileName = isPoster
-    ? POSTER_FILE
-    : VIDEO_FILES[version as keyof typeof VIDEO_FILES] ?? VIDEO_FILES['1080']
-  const assetPath = resolveAssetPath(fileName)
   let fileStat
 
   try {
-    fileStat = await stat(assetPath)
+    fileStat = await stat(videoPath)
   } catch (error) {
     if (isDev) {
-      console.error('Hero asset not found:', error)
-      return new Response(`Hero asset not found at: ${assetPath}`, {
+      console.error('Hero main video not found:', error)
+      return new Response(`Hero main video not found at: ${videoPath}`, {
         status: 404,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
@@ -51,23 +28,9 @@ export async function GET(request: NextRequest) {
     return new Response('Not Found', { status: 404 })
   }
 
-  if (isDev) {
-    console.info(`Hero asset path: ${assetPath}`)
-    console.info(`Hero asset size: ${fileStat.size} bytes`)
-  }
-
-  if (isPoster) {
-    const stream = createReadStream(assetPath)
-    return new Response(Readable.toWeb(stream) as ReadableStream, {
-      headers: {
-        'Content-Length': String(fileStat.size),
-        'Content-Type': 'image/jpeg',
-        'Cache-Control': cacheControl,
-      },
-    })
-  }
-
+  const cacheControl = isDev ? 'no-store' : 'public, max-age=31536000, immutable'
   const range = request.headers.get('range')
+
   if (range) {
     const parts = range.replace(/bytes=/, '').split('-')
     const start = parseInt(parts[0], 10)
@@ -82,7 +45,7 @@ export async function GET(request: NextRequest) {
       })
     }
     const chunkSize = end - start + 1
-    const stream = createReadStream(assetPath, { start, end })
+    const stream = createReadStream(videoPath, { start, end })
 
     return new Response(Readable.toWeb(stream) as ReadableStream, {
       status: 206,
@@ -96,7 +59,7 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  const stream = createReadStream(assetPath)
+  const stream = createReadStream(videoPath)
   return new Response(Readable.toWeb(stream) as ReadableStream, {
     headers: {
       'Content-Length': String(fileStat.size),
