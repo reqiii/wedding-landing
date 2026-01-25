@@ -153,23 +153,28 @@ export function ScrollStoryScene() {
           mode: 'loop',
         },
         render: () => (
-          <ScenePanel progress={1} reducedMotion={reducedMotion} alwaysVisible>
+          <ScenePanel
+            progress={1}
+            reducedMotion={reducedMotion}
+            alwaysVisible
+            className="max-w-[520px]"
+          >
             <Glass variant="hero" className="w-full">
-              <div className="flex flex-col items-center gap-6 text-center">
+              <div className="flex flex-col items-center gap-4 text-center">
                 <Image
                   src="/api/hero-main-video?asset=logo"
                   alt="Логотип"
-                  width={360}
-                  height={140}
-                  sizes="(min-width: 768px) 360px, 280px"
-                  className="h-28 md:h-32 w-auto"
+                  width={220}
+                  height={86}
+                  sizes="(min-width: 768px) 180px, 150px"
+                  className="h-12 sm:h-14 md:h-16 w-auto"
                   priority
                   unoptimized
                 />
-                <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-normal text-dark-gray">
+                <h1 className="font-display text-[1.2rem] sm:text-[1.45rem] md:text-[1.9rem] font-normal text-dark-gray">
                   Роман и Анастасия
                 </h1>
-                <p className="text-xl md:text-2xl text-medium-gray font-light">23.07.2026</p>
+                <p className="text-sm md:text-base text-medium-gray font-light">23.07.2026</p>
               </div>
             </Glass>
           </ScenePanel>

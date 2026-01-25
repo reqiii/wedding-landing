@@ -151,7 +151,7 @@ body::-webkit-scrollbar {
 }
 
 .glass-hero .glass-content {
-  padding: 3rem;
+  padding: clamp(0.6rem, 1.3vw, 1.1rem);
 }
 
 .glass-button .glass-content {
