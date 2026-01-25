@@ -10,6 +10,10 @@ const VIDEO_FILES = {
   '720': 'hero_scroll_720p_iframe.mp4',
 } as const
 
+const SPECIAL_ASSETS = {
+  samet: 'Samet.mp4',
+} as const
+
 const POSTER_FILE = 'hero_poster.jpg'
 
 const createWebStream = (stream: ReturnType<typeof createReadStream>, signal: AbortSignal) =>
@@ -51,11 +55,14 @@ export async function GET(request: NextRequest) {
   const isDev = process.env.NODE_ENV !== 'production'
   const { searchParams } = request.nextUrl
   const version = searchParams.get('v') ?? '1080'
+  const asset = searchParams.get('asset')
   const isPoster = searchParams.get('poster') === '1' || searchParams.get('asset') === 'poster'
   const cacheControl = isDev ? 'no-store' : 'public, max-age=31536000, immutable'
   const fileName = isPoster
     ? POSTER_FILE
-    : VIDEO_FILES[version as keyof typeof VIDEO_FILES] ?? VIDEO_FILES['1080']
+    : asset && asset in SPECIAL_ASSETS
+      ? SPECIAL_ASSETS[asset as keyof typeof SPECIAL_ASSETS]
+      : VIDEO_FILES[version as keyof typeof VIDEO_FILES] ?? VIDEO_FILES['1080']
   const assetPath = resolveAssetPath(fileName)
   let fileStat
 

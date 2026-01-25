@@ -39,6 +39,8 @@ export async function GET(request: NextRequest) {
   const isLogo = asset === 'logo'
 
   const assetFiles: Record<string, string> = {
+    'hero-1080': 'hero_scroll_1080p_iframe.mp4',
+    'hero-720': 'hero_scroll_720p_iframe.mp4',
     'section1-1080': 'hero_scroll_1080p_iframe_1_section.mp4',
     'section1-720': 'hero_scroll_720p_iframe_1_section.mp4',
     'section2-1080': 'hero_scroll_1080p_iframe_2_section.mp4',
