@@ -41,6 +41,19 @@ body {
   animation: gradientShift 300s ease-in-out infinite;
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html, body {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 /* Base Glass Styles */

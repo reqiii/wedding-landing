@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useId } from 'react'
 import { cn } from '@/lib/utils'
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -8,8 +8,12 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
   error?: string
 }
 
-export function Textarea({ label, error, className, id, ...props }: TextareaProps) {
-  const textareaId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
+  { label, error, className, id, ...props },
+  ref
+) {
+  const autoId = useId()
+  const textareaId = id ?? autoId
 
   return (
     <div className="w-full">
@@ -24,6 +28,7 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
       )}
       <textarea
         id={textareaId}
+        ref={ref}
         className={cn(
           'w-full px-4 py-3 rounded-medium',
           'glass-base backdrop-blur-[15px]',
@@ -45,4 +50,4 @@ export function Textarea({ label, error, className, id, ...props }: TextareaProp
       )}
     </div>
   )
-}
+})

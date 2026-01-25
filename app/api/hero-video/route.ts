@@ -1,7 +1,6 @@
 import { createReadStream, existsSync } from 'fs'
 import { stat } from 'fs/promises'
 import path from 'path'
-import { Readable } from 'stream'
 import type { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
@@ -12,6 +11,32 @@ const VIDEO_FILES = {
 } as const
 
 const POSTER_FILE = 'hero_poster.jpg'
+
+const createWebStream = (stream: ReturnType<typeof createReadStream>, signal: AbortSignal) =>
+  new ReadableStream({
+    start(controller) {
+      const onData = (chunk: string | Buffer) => {
+        try {
+          const payload = typeof chunk === 'string' ? Buffer.from(chunk) : chunk
+          controller.enqueue(payload)
+        } catch {
+          stream.destroy()
+        }
+      }
+      const onEnd = () => controller.close()
+      const onError = (error: unknown) => controller.error(error)
+      const onAbort = () => stream.destroy()
+
+      stream.on('data', onData)
+      stream.on('end', onEnd)
+      stream.on('error', onError)
+      signal.addEventListener('abort', onAbort, { once: true })
+      stream.on('close', () => signal.removeEventListener('abort', onAbort))
+    },
+    cancel() {
+      stream.destroy()
+    },
+  })
 
 function resolveAssetPath(fileName: string) {
   const rootCandidate = path.join(process.cwd(), fileName)
@@ -58,7 +83,8 @@ export async function GET(request: NextRequest) {
 
   if (isPoster) {
     const stream = createReadStream(assetPath)
-    return new Response(Readable.toWeb(stream) as ReadableStream, {
+    const readable = createWebStream(stream, request.signal)
+    return new Response(readable, {
       headers: {
         'Content-Length': String(fileStat.size),
         'Content-Type': 'image/jpeg',
@@ -83,8 +109,9 @@ export async function GET(request: NextRequest) {
     }
     const chunkSize = end - start + 1
     const stream = createReadStream(assetPath, { start, end })
+    const readable = createWebStream(stream, request.signal)
 
-    return new Response(Readable.toWeb(stream) as ReadableStream, {
+    return new Response(readable, {
       status: 206,
       headers: {
         'Content-Range': `bytes ${start}-${end}/${fileStat.size}`,
@@ -97,7 +124,8 @@ export async function GET(request: NextRequest) {
   }
 
   const stream = createReadStream(assetPath)
-  return new Response(Readable.toWeb(stream) as ReadableStream, {
+  const readable = createWebStream(stream, request.signal)
+  return new Response(readable, {
     headers: {
       'Content-Length': String(fileStat.size),
       'Content-Type': 'video/mp4',

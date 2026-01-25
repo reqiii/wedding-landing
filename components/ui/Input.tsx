@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useId } from 'react'
 import { cn } from '@/lib/utils'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -8,8 +8,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string
 }
 
-export function Input({ label, error, className, id, ...props }: InputProps) {
-  const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
+  { label, error, className, id, ...props },
+  ref
+) {
+  const autoId = useId()
+  const inputId = id ?? autoId
 
   return (
     <div className="w-full">
@@ -24,6 +28,7 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
       )}
       <input
         id={inputId}
+        ref={ref}
         className={cn(
           'w-full px-4 py-3 rounded-medium',
           'glass-base backdrop-blur-[15px]',
@@ -44,4 +49,4 @@ export function Input({ label, error, className, id, ...props }: InputProps) {
       )}
     </div>
   )
-}
+})

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Glass } from '@/components/ui/Glass'
 import { Button } from '@/components/ui/Button'
@@ -24,11 +24,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  useEffect(() => {
-    fetchSubmissions()
-  }, [filter])
-
-  const fetchSubmissions = async () => {
+  const fetchSubmissions = useCallback(async () => {
     setIsLoading(true)
     setError('')
 
@@ -52,7 +48,11 @@ export default function AdminDashboard() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [filter, router])
+
+  useEffect(() => {
+    fetchSubmissions()
+  }, [fetchSubmissions])
 
   const handleExport = async (format: 'csv' | 'json') => {
     try {
@@ -199,7 +199,9 @@ export default function AdminDashboard() {
                       <div>Dietary: {submission.dietaryPrefs}</div>
                     )}
                     {submission.message && (
-                      <div className="mt-2 italic">"{submission.message}"</div>
+                      <div className="mt-2 italic">
+                        &ldquo;{submission.message}&rdquo;
+                      </div>
                     )}
                   </div>
                 </div>

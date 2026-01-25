@@ -1,9 +1,9 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { ScrollScene, SceneReveal } from '@/components/motion/ScrollScene'
+import { ScrollScene } from '@/components/motion/ScrollScene'
 import { Glass } from '@/components/ui/Glass'
-import { Button } from '@/components/ui/Button'
 
 export function Hero() {
   const [videoEnabled, setVideoEnabled] = useState(false)
@@ -25,15 +25,8 @@ export function Hero() {
     return () => motionQuery.removeEventListener('change', updateVideoState)
   }, [])
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }
-
   return (
-    <ScrollScene innerClassName="relative min-h-screen flex items-center justify-center px-4 py-20">
+    <ScrollScene innerClassName="relative min-h-screen flex items-center justify-center px-4 py-20 overflow-hidden">
       {videoEnabled && (
         <video
           className="absolute inset-0 w-full h-full object-cover"
@@ -54,52 +47,26 @@ export function Hero() {
         }`}
       />
 
-      <div className="relative z-10 max-w-4xl mx-auto text-center">
+      <div className="relative z-10 max-w-3xl mx-auto text-center">
         <Glass variant="hero" className="w-full">
-          <SceneReveal start={0.14} duration={0.32}>
-            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-normal text-dark-gray mb-4">
-              Our Wedding
+          <div className="flex flex-col items-center gap-6">
+            <Image
+              src="/api/hero-video?poster=1"
+              alt="Логотип"
+              width={160}
+              height={64}
+              sizes="160px"
+              className="h-16 w-auto"
+              priority
+              unoptimized
+            />
+            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-normal text-dark-gray">
+              Роман и Анастасия
             </h1>
-          </SceneReveal>
-
-          <SceneReveal start={0.24} duration={0.32} className="space-y-3 mb-8">
             <p className="text-xl md:text-2xl text-medium-gray font-light">
-              Saturday, June 15, 2024
+              23.07.2026
             </p>
-            <p className="text-lg md:text-xl text-medium-gray">
-              Sunset Gardens, Napa Valley
-            </p>
-          </SceneReveal>
-
-          <SceneReveal
-            start={0.36}
-            duration={0.34}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-          >
-            <Button
-              size="lg"
-              onClick={() => scrollToSection('rsvp')}
-              className="w-full sm:w-auto"
-            >
-              RSVP
-            </Button>
-            <Button
-              variant="solid"
-              size="lg"
-              onClick={() => scrollToSection('details')}
-              className="w-full sm:w-auto"
-            >
-              Details
-            </Button>
-            <Button
-              variant="solid"
-              size="lg"
-              onClick={() => scrollToSection('details')}
-              className="w-full sm:w-auto"
-            >
-              How to Get There
-            </Button>
-          </SceneReveal>
+          </div>
         </Glass>
       </div>
     </ScrollScene>

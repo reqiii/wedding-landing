@@ -3,9 +3,18 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-interface ScrollScrubVideoSectionProps extends HTMLAttributes<HTMLElement> {
-  children: ReactNode
+type ScrollScrubChildren = ReactNode | ((progress: number, reducedMotion: boolean) => ReactNode)
+
+type ScrollScrubVideoSectionProps = Omit<HTMLAttributes<HTMLElement>, 'children'> & {
+  children: ScrollScrubChildren
   heightVh?: number
+  videoSrcDesktop?: string
+  videoSrcMobile?: string
+  posterSrc?: string
+  videoProgressEnd?: number
+  forceScrub?: boolean
+  showOverlay?: boolean
+  overlayClassName?: string
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
@@ -14,6 +23,13 @@ export function ScrollScrubVideoSection({
   children,
   heightVh = 260,
   className = '',
+  videoSrcDesktop = '/api/hero-video?v=1080',
+  videoSrcMobile = '/api/hero-video?v=720',
+  posterSrc,
+  videoProgressEnd = 1,
+  forceScrub = false,
+  showOverlay = false,
+  overlayClassName = 'bg-black/30',
   ...sectionProps
 }: ScrollScrubVideoSectionProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
@@ -22,15 +38,16 @@ export function ScrollScrubVideoSection({
   const progressRef = useRef(0)
   const durationRef = useRef(0)
   const isReadyRef = useRef(false)
-  const whiteOverlayRef = useRef<HTMLDivElement | null>(null)
 
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [isMobileSafari, setIsMobileSafari] = useState(false)
-  const [videoSrc, setVideoSrc] = useState('/api/hero-video?v=1080')
+  const [videoSrc, setVideoSrc] = useState(videoSrcDesktop)
+  const [progress, setProgress] = useState(0)
+  const [isActive, setIsActive] = useState(false)
 
-  const allowScrub = !prefersReducedMotion && !isMobileSafari
+  const allowScrub = forceScrub ? !isMobileSafari : !prefersReducedMotion && !isMobileSafari
   const shouldAutoplay = !prefersReducedMotion && !allowScrub
-  const posterSrc = useMemo(() => '/api/hero-video?poster=1', [])
+  const resolvedPoster = useMemo(() => posterSrc ?? '', [posterSrc])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -44,12 +61,11 @@ export function ScrollScrubVideoSection({
   useEffect(() => {
     if (typeof window === 'undefined') return
     const mediaQuery = window.matchMedia('(max-width: 768px)')
-    const update = () =>
-      setVideoSrc(mediaQuery.matches ? '/api/hero-video?v=720' : '/api/hero-video?v=1080')
+    const update = () => setVideoSrc(mediaQuery.matches ? videoSrcMobile : videoSrcDesktop)
     update()
     mediaQuery.addEventListener('change', update)
     return () => mediaQuery.removeEventListener('change', update)
-  }, [])
+  }, [videoSrcDesktop, videoSrcMobile])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -75,6 +91,9 @@ export function ScrollScrubVideoSection({
     }
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata)
+    if (video.readyState >= 1) {
+      handleLoadedMetadata()
+    }
     return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata)
   }, [allowScrub, videoSrc])
 
@@ -114,21 +133,14 @@ export function ScrollScrubVideoSection({
       const endPx = vh * 0.2
       const total = Math.max(1, rect.height + (startPx - endPx))
       const progressRaw = (startPx - rect.top) / total
-      const progress = clamp(progressRaw, 0, 1)
-      progressRef.current = progress
-
-      if (whiteOverlayRef.current) {
-        let overlayOpacity = 0
-        if (progress < 0.1) {
-          overlayOpacity = 1 - progress / 0.1
-        } else if (progress > 0.9) {
-          overlayOpacity = (progress - 0.9) / 0.1
-        }
-        whiteOverlayRef.current.style.opacity = String(overlayOpacity)
-      }
+      const scrollProgress = clamp(progressRaw, 0, 1)
+      progressRef.current = scrollProgress
+      setProgress(scrollProgress)
+      setIsActive(progressRaw >= 0 && progressRaw <= 1)
 
       if (allowScrub && isReadyRef.current && videoRef.current) {
-        const targetTime = progress * durationRef.current
+        const normalizedVideoProgress = clamp(scrollProgress / videoProgressEnd, 0, 1)
+        const targetTime = normalizedVideoProgress * durationRef.current
         if (Math.abs(videoRef.current.currentTime - targetTime) > 0.02) {
           videoRef.current.currentTime = targetTime
         }
@@ -156,7 +168,7 @@ export function ScrollScrubVideoSection({
         window.cancelAnimationFrame(rafRef.current)
       }
     }
-  }, [allowScrub])
+  }, [allowScrub, videoProgressEnd])
 
   return (
     <section
@@ -165,12 +177,20 @@ export function ScrollScrubVideoSection({
       style={{ height: `${heightVh}vh` }}
       {...sectionProps}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+        <div
+          className="sticky top-0 h-screen w-full overflow-hidden"
+          style={{
+            opacity: isActive ? 1 : 0,
+            visibility: isActive ? 'visible' : 'hidden',
+            pointerEvents: isActive ? 'auto' : 'none',
+            zIndex: isActive ? 1 : 0,
+          }}
+        >
         <div className="absolute inset-0">
           {prefersReducedMotion ? (
             <div
               className="absolute inset-0 bg-center bg-cover"
-              style={{ backgroundImage: `url(${posterSrc})` }}
+              style={resolvedPoster ? { backgroundImage: `url(${resolvedPoster})` } : undefined}
             />
           ) : (
             <video
@@ -178,7 +198,7 @@ export function ScrollScrubVideoSection({
               muted
               playsInline
               preload="auto"
-              poster={posterSrc}
+              poster={resolvedPoster || undefined}
               src={videoSrc}
               autoPlay={shouldAutoplay}
               loop={shouldAutoplay}
@@ -188,14 +208,11 @@ export function ScrollScrubVideoSection({
             />
           )}
         </div>
-        <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/35 via-black/15 to-black/45" />
-        <div
-          ref={whiteOverlayRef}
-          className="absolute inset-0 z-20 bg-white pointer-events-none"
-          style={{ opacity: 1 }}
-        />
-        <div className="relative z-30 flex h-full items-center">
-          <div className="mx-auto w-full max-w-6xl px-4">{children}</div>
+        {showOverlay && <div className={`absolute inset-0 z-10 ${overlayClassName}`} />}
+        <div className="relative z-20 flex h-full items-center">
+          <div className="mx-auto w-full max-w-6xl px-4">
+            {typeof children === 'function' ? children(progress, prefersReducedMotion) : children}
+          </div>
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { rsvpAttendanceSchema, rsvpDeclineSchema } from '@/lib/validations'
+import { rsvpSubmissionSchema } from '@/lib/validations'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 function getClientIP(request: NextRequest): string | null {
@@ -40,24 +40,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate based on attending status
-    let validatedData
-    if (body.attending === true) {
-      validatedData = rsvpAttendanceSchema.parse(body)
-    } else {
-      validatedData = rsvpDeclineSchema.parse(body)
-    }
+    const validatedData = rsvpSubmissionSchema.parse(body)
+
+    const attending = validatedData.attendance !== 'decline'
+    const guestCount =
+      validatedData.attendance === 'attending_plus_one'
+        ? 2
+        : validatedData.attendance === 'attending'
+          ? 1
+          : null
+    const transferNote =
+      validatedData.transfer === 'required' ? 'Transfer: required' : 'Transfer: not required'
 
     // Save to database
     const submission = await db.rSVPSubmission.create({
       data: {
-        name: validatedData.name,
-        email: validatedData.email || null,
-        phone: validatedData.phone || null,
-        attending: body.attending,
-        guestCount: body.attending ? validatedData.guestCount : null,
-        dietaryPrefs: validatedData.dietaryPrefs || null,
-        message: validatedData.message || null,
+        name: validatedData.names,
+        email: null,
+        phone: null,
+        attending,
+        guestCount,
+        dietaryPrefs: null,
+        message: transferNote,
         ipAddress,
         honeypot: body.honeypot || null,
       },

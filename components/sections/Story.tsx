@@ -1,34 +1,41 @@
 'use client'
 
-import { ScrollScene, SceneReveal } from '@/components/motion/ScrollScene'
+import { ScrollScrubVideoSection } from '@/components/ScrollScrubVideoSection'
 import { Glass } from '@/components/ui/Glass'
+import { SceneContent } from '@/components/sections/SceneContent'
 
 export function Story() {
   return (
-    <ScrollScene
+    <ScrollScrubVideoSection
       id="story"
-      className="relative"
-      innerClassName="py-20 px-4 max-w-4xl mx-auto"
+      className="bg-black"
+      heightVh={360}
+      videoSrcDesktop="/api/hero-main-video?asset=section1&v=1080"
+      videoSrcMobile="/api/hero-main-video?asset=section1&v=720"
+      videoProgressEnd={0.5}
+      forceScrub
+      showOverlay={false}
     >
-      <Glass variant="panel" className="text-center">
-        <SceneReveal start={0.16} duration={0.32}>
-          <h2 className="font-display text-3xl md:text-4xl text-dark-gray mb-6">
-            Our Story
-          </h2>
-        </SceneReveal>
-        <SceneReveal start={0.28} duration={0.34} className="prose prose-lg max-w-none text-medium-gray space-y-4">
-          <p>
-            We met on a sunny afternoon in the spring of 2018, and from that
-            moment, we knew something special had begun. Over the years, we've
-            shared countless adventures, laughter, and dreams.
-          </p>
-          <p>
-            Now, we're excited to celebrate the next chapter of our journey
-            together with all of you. Your presence would make our day
-            complete.
-          </p>
-        </SceneReveal>
-      </Glass>
-    </ScrollScene>
+      {(progress, reducedMotion) => (
+        <SceneContent progress={progress} reducedMotion={reducedMotion} className="text-center">
+          <Glass variant="panel">
+            <h2 className="font-display text-3xl md:text-4xl text-dark-gray mb-6">
+              История и приглашение
+            </h2>
+            <div className="space-y-4 text-medium-gray text-lg leading-relaxed">
+              <p>
+                Мы приглашаем вас разделить с нами день, когда начнется новая глава
+                нашей истории. Это будет вечер теплых встреч, искренних улыбок и
+                красивых моментов.
+              </p>
+              <p>
+                Нам важны ваши присутствие и поддержка — будем счастливы видеть вас
+                рядом в этот особенный день.
+              </p>
+            </div>
+          </Glass>
+        </SceneContent>
+      )}
+    </ScrollScrubVideoSection>
   )
 }

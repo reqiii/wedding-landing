@@ -3,28 +3,25 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { rsvpAttendanceSchema, type RSVPAttendanceFormData } from '@/lib/validations'
-import { Glass } from '@/components/ui/Glass'
+import { rsvpSubmissionSchema, type RSVPSubmissionFormData } from '@/lib/validations'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
 
 export function RSVPForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [submissionId, setSubmissionId] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<RSVPAttendanceFormData>({
-    resolver: zodResolver(rsvpAttendanceSchema),
+  } = useForm<RSVPSubmissionFormData>({
+    resolver: zodResolver(rsvpSubmissionSchema),
   })
 
-  const onSubmit = async (data: RSVPAttendanceFormData) => {
+  const onSubmit = async (data: RSVPSubmissionFormData) => {
     setIsSubmitting(true)
     setSubmitStatus('idle')
 
@@ -32,17 +29,13 @@ export function RSVPForm() {
       const response = await fetch('/api/rsvp/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          attending: true,
-        }),
+        body: JSON.stringify(data),
       })
 
       const result = await response.json()
 
       if (response.ok && result.success) {
         setSubmitStatus('success')
-        setSubmissionId(result.id)
         reset()
       } else {
         setSubmitStatus('error')
@@ -56,106 +49,82 @@ export function RSVPForm() {
 
   if (submitStatus === 'success') {
     return (
-      <Glass variant="panel" className="text-center">
-        <div className="text-4xl mb-4">✨</div>
-        <h3 className="font-display text-2xl text-dark-gray mb-4">
-          Thank You!
-        </h3>
-        <p className="text-medium-gray mb-6">
-          We've received your RSVP and can't wait to celebrate with you!
+      <div className="text-center space-y-4">
+        <div className="text-3xl">✨</div>
+        <h3 className="font-display text-2xl text-dark-gray">Спасибо!</h3>
+        <p className="text-medium-gray">
+          Мы получили вашу анкету и будем рады видеть вас.
         </p>
         <Button
+          type="button"
           onClick={() => {
             setSubmitStatus('idle')
-            setSubmissionId(null)
           }}
         >
-          Submit Another
+          Заполнить снова
         </Button>
-      </Glass>
+      </div>
     )
   }
 
   return (
-    <Glass variant="panel">
-      <h3 className="font-display text-2xl text-dark-gray mb-6 text-center">
-        Yes, I'll Be There!
-      </h3>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Honeypot field - hidden from users */}
-        <input
-          type="text"
-          {...register('honeypot')}
-          className="hidden"
-          tabIndex={-1}
-          autoComplete="off"
-        />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <input
+        type="text"
+        {...register('honeypot')}
+        className="hidden"
+        tabIndex={-1}
+        autoComplete="off"
+      />
 
-        <Input
-          label="Full Name"
-          {...register('name')}
-          error={errors.name?.message}
-          required
-          autoComplete="name"
-        />
+      <Select
+        label="Присутствие"
+        {...register('attendance')}
+        error={errors.attendance?.message}
+        required
+        options={[
+          { value: '', label: 'Выберите вариант' },
+          { value: 'attending', label: 'Буду' },
+          { value: 'attending_plus_one', label: 'Буду +1' },
+          { value: 'decline', label: 'Не буду' },
+        ]}
+      />
 
-        <Input
-          label="Email"
-          type="email"
-          {...register('email')}
-          error={errors.email?.message}
-          required
-          autoComplete="email"
-        />
+      <Input
+        label="Имя Фамилия"
+        {...register('names')}
+        error={errors.names?.message}
+        required
+        autoComplete="name"
+        placeholder="Все гости, включая +1"
+      />
 
-        <Input
-          label="Phone (Optional)"
-          type="tel"
-          {...register('phone')}
-          error={errors.phone?.message}
-          autoComplete="tel"
-        />
+      <Select
+        label="Трансфер"
+        {...register('transfer')}
+        error={errors.transfer?.message}
+        required
+        options={[
+          { value: '', label: 'Выберите вариант' },
+          { value: 'required', label: 'Требуется' },
+          { value: 'not_required', label: 'Не требуется' },
+        ]}
+      />
 
-        <Select
-          label="Number of Guests"
-          {...register('guestCount', { valueAsNumber: true })}
-          error={errors.guestCount?.message}
-          required
-          options={Array.from({ length: 20 }, (_, i) => ({
-            value: String(i + 1),
-            label: String(i + 1),
-          }))}
-        />
+      {submitStatus === 'error' && (
+        <p className="text-soft-rose text-sm" role="alert">
+          Что-то пошло не так. Пожалуйста, попробуйте еще раз.
+        </p>
+      )}
 
-        <Input
-          label="Dietary Preferences (Optional)"
-          {...register('dietaryPrefs')}
-          error={errors.dietaryPrefs?.message}
-          placeholder="Vegetarian, gluten-free, allergies, etc."
-        />
-
-        <Textarea
-          label="Message (Optional)"
-          {...register('message')}
-          error={errors.message?.message}
-          placeholder="Any special notes or requests..."
-        />
-
-        {submitStatus === 'error' && (
-          <p className="text-soft-rose text-sm" role="alert">
-            Something went wrong. Please try again or contact us directly.
-          </p>
-        )}
-
-        <Button
-          type="submit"
-          variant="solid"
-          className="w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
-        </Button>
-      </form>
-    </Glass>
+      <Button
+        type="submit"
+        variant="solid"
+        className="w-full"
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Отправляем...' : 'Готово / Отправить'}
+      </Button>
+    </form>
   )
 }

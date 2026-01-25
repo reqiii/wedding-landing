@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useId } from 'react'
 import { cn } from '@/lib/utils'
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -9,8 +9,12 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   options: { value: string; label: string }[]
 }
 
-export function Select({ label, error, options, className, id, ...props }: SelectProps) {
-  const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`
+export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { label, error, options, className, id, ...props },
+  ref
+) {
+  const autoId = useId()
+  const selectId = id ?? autoId
 
   return (
     <div className="w-full">
@@ -25,6 +29,7 @@ export function Select({ label, error, options, className, id, ...props }: Selec
       )}
       <select
         id={selectId}
+        ref={ref}
         className={cn(
           'w-full px-4 py-3 rounded-medium',
           'glass-base backdrop-blur-[15px]',
@@ -53,4 +58,4 @@ export function Select({ label, error, options, className, id, ...props }: Selec
       )}
     </div>
   )
-}
+})

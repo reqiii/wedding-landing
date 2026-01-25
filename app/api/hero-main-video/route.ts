@@ -1,17 +1,63 @@
-import { createReadStream } from 'fs'
+import { createReadStream, existsSync } from 'fs'
 import { stat } from 'fs/promises'
 import path from 'path'
-import { Readable } from 'stream'
 import type { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
 
+const createWebStream = (stream: ReturnType<typeof createReadStream>, signal: AbortSignal) =>
+  new ReadableStream({
+    start(controller) {
+      const onData = (chunk: string | Buffer) => {
+        try {
+          const payload = typeof chunk === 'string' ? Buffer.from(chunk) : chunk
+          controller.enqueue(payload)
+        } catch {
+          stream.destroy()
+        }
+      }
+      const onEnd = () => controller.close()
+      const onError = (error: unknown) => controller.error(error)
+      const onAbort = () => stream.destroy()
+
+      stream.on('data', onData)
+      stream.on('end', onEnd)
+      stream.on('error', onError)
+      signal.addEventListener('abort', onAbort, { once: true })
+      stream.on('close', () => signal.removeEventListener('abort', onAbort))
+    },
+    cancel() {
+      stream.destroy()
+    },
+  })
+
 export async function GET(request: NextRequest) {
-  const videoPath = path.join(process.cwd(), 'Samet.mp4')
+  const { searchParams } = request.nextUrl
+  const asset = searchParams.get('asset') ?? 'hero'
+  const version = searchParams.get('v') ?? '1080'
+  const assetKey = `${asset}-${version}`
+
+  const assetFiles: Record<string, string> = {
+    'section1-1080': 'hero_scroll_1080p_iframe_1_section.mp4',
+    'section1-720': 'hero_scroll_720p_iframe_1_section.mp4',
+    'section2-1080': 'hero_scroll_1080p_iframe_2_section.mp4',
+    'section2-720': 'hero_scroll_720p_iframe_2_section.mp4',
+    'sun-1080': 'the_sun_1080p_iframe.mp4',
+    'sun-720': 'the_sun_720p_iframe.mp4',
+  }
+
+  const resolvedAsset = assetFiles[assetKey]
+  const fallbackAsset = assetFiles[`${asset}-1080`]
+  const videoPath = resolvedAsset || fallbackAsset
+    ? path.join(process.cwd(), 'app', 'api', 'hero-main-video', resolvedAsset ?? fallbackAsset)
+    : path.join(process.cwd(), 'Samet.mp4')
   const isDev = process.env.NODE_ENV !== 'production'
   let fileStat
 
   try {
+    if (!existsSync(videoPath)) {
+      throw new Error(`Hero main asset missing: ${videoPath}`)
+    }
     fileStat = await stat(videoPath)
   } catch (error) {
     if (isDev) {
@@ -46,8 +92,9 @@ export async function GET(request: NextRequest) {
     }
     const chunkSize = end - start + 1
     const stream = createReadStream(videoPath, { start, end })
+    const readable = createWebStream(stream, request.signal)
 
-    return new Response(Readable.toWeb(stream) as ReadableStream, {
+    return new Response(readable, {
       status: 206,
       headers: {
         'Content-Range': `bytes ${start}-${end}/${fileStat.size}`,
@@ -60,7 +107,8 @@ export async function GET(request: NextRequest) {
   }
 
   const stream = createReadStream(videoPath)
-  return new Response(Readable.toWeb(stream) as ReadableStream, {
+  const readable = createWebStream(stream, request.signal)
+  return new Response(readable, {
     headers: {
       'Content-Length': String(fileStat.size),
       'Content-Type': 'video/mp4',

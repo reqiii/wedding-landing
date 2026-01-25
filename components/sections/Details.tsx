@@ -1,98 +1,91 @@
 'use client'
 
-import { ScrollScene, SceneReveal } from '@/components/motion/ScrollScene'
+import { ScrollScrubVideoSection } from '@/components/ScrollScrubVideoSection'
 import { Glass } from '@/components/ui/Glass'
+import { SceneContent } from '@/components/sections/SceneContent'
 
 export function Details() {
   return (
-    <ScrollScene
+    <ScrollScrubVideoSection
       id="details"
-      className="relative"
-      innerClassName="py-20 px-4 max-w-4xl mx-auto"
+      className="bg-black"
+      heightVh={360}
+      videoSrcDesktop="/api/hero-main-video?asset=section2&v=1080"
+      videoSrcMobile="/api/hero-main-video?asset=section2&v=720"
+      videoProgressEnd={0.5}
+      forceScrub
+      showOverlay={false}
     >
-      <Glass variant="panel" className="space-y-8">
-        <SceneReveal start={0.16} duration={0.32}>
-          <h2 className="font-display text-3xl md:text-4xl text-dark-gray mb-6">
-            Venue & Schedule
-          </h2>
-        </SceneReveal>
-        <SceneReveal start={0.28} duration={0.34} className="space-y-4 text-medium-gray">
-          <div>
-            <h3 className="font-semibold text-dark-gray mb-1">Location</h3>
-            <p>Sunset Gardens</p>
-            <p>123 Vineyard Lane</p>
-            <p>Napa Valley, CA 94558</p>
-            <a
-              href="https://maps.google.com/?q=Sunset+Gardens+Napa+Valley"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-light-orange hover:underline mt-2 inline-block"
-            >
-              View on Google Maps →
-            </a>
-          </div>
-        </SceneReveal>
+      {(progress, reducedMotion) => (
+        <SceneContent progress={progress} reducedMotion={reducedMotion}>
+          <Glass variant="panel" className="space-y-8">
+            <h2 className="font-display text-3xl md:text-4xl text-dark-gray text-center">
+              Главная информация
+            </h2>
 
-        <SceneReveal start={0.38} duration={0.32}>
-          <div>
-            <h3 className="font-display text-2xl text-dark-gray mb-4">Schedule</h3>
-            <div className="space-y-3">
-              <div className="flex gap-4">
-                <div className="font-semibold text-dark-gray min-w-[100px]">4:00 PM</div>
-                <div className="text-medium-gray">Ceremony Begins</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-medium-gray">
+              <div className="space-y-3">
+                <h3 className="font-display text-2xl text-dark-gray">Тайминг</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between gap-4">
+                    <span className="font-semibold text-dark-gray">16:00</span>
+                    <span>Сбор гостей</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="font-semibold text-dark-gray">17:00</span>
+                    <span>Церемония</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="font-semibold text-dark-gray">18:00</span>
+                    <span>Ужин и программа</span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="font-semibold text-dark-gray">22:30</span>
+                    <span>Танцы и финал</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-4">
-                <div className="font-semibold text-dark-gray min-w-[100px]">4:30 PM</div>
-                <div className="text-medium-gray">Cocktail Hour</div>
+
+              <div className="space-y-3">
+                <h3 className="font-display text-2xl text-dark-gray">Дресс-код</h3>
+                <p>
+                  Будем благодарны за образы в спокойной палитре. Ниже — 5 оттенков,
+                  которые особенно красиво поддержат атмосферу вечера.
+                </p>
+                <div className="flex items-center gap-3 pt-2">
+                  <span className="h-6 w-6 rounded-full bg-[#F5E6D3]" aria-hidden="true" />
+                  <span className="h-6 w-6 rounded-full bg-[#FFD4B3]" aria-hidden="true" />
+                  <span className="h-6 w-6 rounded-full bg-[#FFC4D6]" aria-hidden="true" />
+                  <span className="h-6 w-6 rounded-full bg-[#B8E6E6]" aria-hidden="true" />
+                  <span className="h-6 w-6 rounded-full bg-[#A8D8E8]" aria-hidden="true" />
+                </div>
               </div>
-              <div className="flex gap-4">
-                <div className="font-semibold text-dark-gray min-w-[100px]">6:00 PM</div>
-                <div className="text-medium-gray">Reception & Dinner</div>
+
+              <div className="space-y-3">
+                <h3 className="font-display text-2xl text-dark-gray">Подарки</h3>
+                <p>
+                  Для нас главное — ваше присутствие. Если хотите сделать подарок,
+                  будем рады вашему вкладу в нашу общую мечту о путешествии.
+                </p>
               </div>
-              <div className="flex gap-4">
-                <div className="font-semibold text-dark-gray min-w-[100px]">9:00 PM</div>
-                <div className="text-medium-gray">Dancing & Celebration</div>
+
+              <div className="space-y-3">
+                <h3 className="font-display text-2xl text-dark-gray">Организатор</h3>
+                <p>
+                  По всем вопросам можно обращаться к нашему организатору.
+                </p>
+                <p>
+                  <strong className="text-dark-gray">Анна, свадебный координатор</strong>
+                  <br />
+                  Телефон: +7 (999) 123-45-67
+                  <br />
+                  Telegram: @wedding_helper
+                </p>
               </div>
             </div>
-          </div>
-        </SceneReveal>
-
-        <SceneReveal start={0.48} duration={0.3}>
-          <div>
-            <h3 className="font-display text-2xl text-dark-gray mb-4">Dress Code</h3>
-            <p className="text-medium-gray">
-              Cocktail attire. We suggest soft pastels and elegant neutrals to
-              complement the sunset theme. Please avoid white.
-            </p>
-          </div>
-        </SceneReveal>
-
-        <SceneReveal start={0.56} duration={0.3}>
-          <div>
-            <h3 className="font-display text-2xl text-dark-gray mb-4">Gifts</h3>
-            <p className="text-medium-gray">
-              Your presence is the greatest gift. If you'd like to honor us with
-              a gift, we have a registry available. Please contact us for details.
-            </p>
-          </div>
-        </SceneReveal>
-
-        <SceneReveal start={0.64} duration={0.3}>
-          <div>
-            <h3 className="font-display text-2xl text-dark-gray mb-4">Contact</h3>
-            <p className="text-medium-gray">
-              Questions? Reach out to our wedding planner:
-            </p>
-            <p className="text-medium-gray mt-2">
-              <strong>Sarah Johnson</strong>
-              <br />
-              Email: sarah@weddingplanner.com
-              <br />
-              Phone: (555) 123-4567
-            </p>
-          </div>
-        </SceneReveal>
-      </Glass>
-    </ScrollScene>
+          </Glass>
+        </SceneContent>
+      )}
+    </ScrollScrubVideoSection>
   )
 }
