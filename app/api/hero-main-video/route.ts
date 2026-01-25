@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
   const asset = searchParams.get('asset') ?? 'hero'
   const version = searchParams.get('v') ?? '1080'
   const assetKey = `${asset}-${version}`
+  const isLogo = asset === 'logo'
 
   const assetFiles: Record<string, string> = {
     'section1-1080': 'hero_scroll_1080p_iframe_1_section.mp4',
@@ -51,18 +52,20 @@ export async function GET(request: NextRequest) {
   const videoPath = resolvedAsset || fallbackAsset
     ? path.join(process.cwd(), 'app', 'api', 'hero-main-video', resolvedAsset ?? fallbackAsset)
     : path.join(process.cwd(), 'Samet.mp4')
+  const logoPath = path.join(process.cwd(), 'app', 'api', 'hero-main-video', 'logo.png')
   const isDev = process.env.NODE_ENV !== 'production'
   let fileStat
 
   try {
-    if (!existsSync(videoPath)) {
-      throw new Error(`Hero main asset missing: ${videoPath}`)
+    const assetPath = isLogo ? logoPath : videoPath
+    if (!existsSync(assetPath)) {
+      throw new Error(`Hero main asset missing: ${assetPath}`)
     }
-    fileStat = await stat(videoPath)
+    fileStat = await stat(assetPath)
   } catch (error) {
     if (isDev) {
       console.error('Hero main video not found:', error)
-      return new Response(`Hero main video not found at: ${videoPath}`, {
+      return new Response(`Hero main asset not found at: ${isLogo ? logoPath : videoPath}`, {
         status: 404,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
@@ -76,6 +79,18 @@ export async function GET(request: NextRequest) {
 
   const cacheControl = isDev ? 'no-store' : 'public, max-age=31536000, immutable'
   const range = request.headers.get('range')
+
+  if (isLogo) {
+    const stream = createReadStream(logoPath)
+    const readable = createWebStream(stream, request.signal)
+    return new Response(readable, {
+      headers: {
+        'Content-Length': String(fileStat.size),
+        'Content-Type': 'image/png',
+        'Cache-Control': cacheControl,
+      },
+    })
+  }
 
   if (range) {
     const parts = range.replace(/bytes=/, '').split('-')

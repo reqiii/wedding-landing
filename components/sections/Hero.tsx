@@ -51,12 +51,12 @@ export function Hero() {
         <Glass variant="hero" className="w-full">
           <div className="flex flex-col items-center gap-6">
             <Image
-              src="/api/hero-video?poster=1"
+              src="/api/hero-main-video?asset=logo"
               alt="Логотип"
-              width={160}
-              height={64}
-              sizes="160px"
-              className="h-16 w-auto"
+              width={360}
+              height={140}
+              sizes="(min-width: 768px) 360px, 280px"
+              className="h-28 md:h-32 w-auto"
               priority
               unoptimized
             />
