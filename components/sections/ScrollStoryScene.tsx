@@ -88,6 +88,15 @@ const ScenePanel = ({
   alwaysVisible = false,
   children,
 }: ScenePanelProps) => {
+  const previousProgressRef = useRef(progress)
+  const isScrollingUp = progress < previousProgressRef.current
+
+  useEffect(() => {
+    previousProgressRef.current = progress
+  }, [progress])
+
+  const motionProgress = isScrollingUp ? 1 - progress : progress
+
   if (reducedMotion || alwaysVisible) {
     return <div className={cn('mx-auto w-full max-w-4xl', className)}>{children}</div>
   }
@@ -97,18 +106,18 @@ const ScenePanel = ({
   const holdEnd = 0.9
   const exitEnd = 1.0
 
-  const appearProgress = clamp((progress - appearStart) / (appearEnd - appearStart))
-  const exitProgress = clamp((progress - holdEnd) / (exitEnd - holdEnd))
+  const appearProgress = clamp((motionProgress - appearStart) / (appearEnd - appearStart))
+  const exitProgress = clamp((motionProgress - holdEnd) / (exitEnd - holdEnd))
 
   let opacity = 1
   let translateY = lerp(48, 0, appearProgress)
 
-  if (progress >= holdEnd) {
+  if (motionProgress >= holdEnd) {
     opacity = 1 - exitProgress
     translateY = lerp(0, -28, exitProgress)
   }
 
-  const isVisible = progress >= appearStart
+  const isVisible = motionProgress >= appearStart
 
   return (
     <div

@@ -1,6 +1,7 @@
 'use client'
 
 import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
@@ -14,6 +15,15 @@ type SceneContentProps = {
 }
 
 export function SceneContent({ progress, reducedMotion, className, children }: SceneContentProps) {
+  const previousProgressRef = useRef(progress)
+  const isScrollingUp = progress < previousProgressRef.current
+
+  useEffect(() => {
+    previousProgressRef.current = progress
+  }, [progress])
+
+  const motionProgress = isScrollingUp ? 1 - progress : progress
+
   if (reducedMotion) {
     return (
       <div className={cn('mx-auto w-full max-w-4xl', className)}>
@@ -27,18 +37,18 @@ export function SceneContent({ progress, reducedMotion, className, children }: S
   const holdEnd = 0.985
   const exitEnd = 1.0
 
-  const appearProgress = clamp((progress - appearStart) / (appearEnd - appearStart))
-  const exitProgress = clamp((progress - holdEnd) / (exitEnd - holdEnd))
+  const appearProgress = clamp((motionProgress - appearStart) / (appearEnd - appearStart))
+  const exitProgress = clamp((motionProgress - holdEnd) / (exitEnd - holdEnd))
 
   let opacity = 1
   let translateY = lerp(44, 0, appearProgress)
 
-  if (progress >= holdEnd) {
+  if (motionProgress >= holdEnd) {
     opacity = 1 - exitProgress
     translateY = lerp(0, -28, exitProgress)
   }
 
-  const isVisible = progress >= appearStart
+  const isVisible = motionProgress >= appearStart
   const style: CSSProperties = {
     opacity: isVisible ? opacity : 0,
     transform: `translate3d(0, ${translateY}px, 0)`,
