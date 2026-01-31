@@ -124,6 +124,11 @@ body::-webkit-scrollbar {
   mask-image: radial-gradient(circle at center, transparent 45%, black 85%);
 }
 
+/* Panels use a single visible border to match hero style */
+.glass-panel .glass-refraction-edge {
+  display: none;
+}
+
 .glass-surface {
   border: 1px solid rgba(255, 255, 255, 0.25);
   box-shadow:
