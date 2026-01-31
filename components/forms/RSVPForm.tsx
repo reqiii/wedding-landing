@@ -78,7 +78,7 @@ export function RSVPForm() {
       />
 
       <Select
-        label="Присутствие"
+        label="Сможете ли вы присутствовать на нашем торжестве?"
         {...register('attendance')}
         error={errors.attendance?.message}
         required
@@ -91,23 +91,23 @@ export function RSVPForm() {
       />
 
       <Input
-        label="Имя Фамилия"
+        label="Укажите ваши Имя и Фамилию"
         {...register('names')}
         error={errors.names?.message}
         required
         autoComplete="name"
-        placeholder="Все гости, включая +1"
+        placeholder="Если вы будете парой или семьей, укажите всех"
       />
 
       <Select
-        label="Трансфер"
+        label="Потребуется ли вам трансфер?"
         {...register('transfer')}
         error={errors.transfer?.message}
         required
         options={[
           { value: '', label: 'Выберите вариант' },
-          { value: 'required', label: 'Требуется' },
-          { value: 'not_required', label: 'Не требуется' },
+          { value: 'required', label: 'Потребуется' },
+          { value: 'not_required', label: 'Не потребуется' },
         ]}
       />
 
@@ -123,7 +123,7 @@ export function RSVPForm() {
         className="w-full"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Отправляем...' : 'Готово / Отправить'}
+        {isSubmitting ? 'Отправляем...' : 'Отправить'}
       </Button>
     </form>
   )
