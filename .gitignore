@@ -39,3 +39,11 @@ next-env.d.ts
 /prisma/migrations
 *.db
 *.db-journal
+
+# Video assets (store outside git)
+app/api/hero-video/*.mp4
+app/api/hero-video/*.mov
+app/api/hero-main- video/*.mp4
+app/api/hero-main-video/*.mov
+*.mp4
+*.mov
