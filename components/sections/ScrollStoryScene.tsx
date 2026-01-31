@@ -203,6 +203,8 @@ export function ScrollStoryScene() {
   const [isActive, setIsActive] = useState(false)
   const [videoSrc, setVideoSrc] = useState<string | null>(null)
   const [videoMode, setVideoMode] = useState<SegmentVideo['mode']>('hold')
+  const [previousVideoSrc, setPreviousVideoSrc] = useState<string | null>(null)
+  const lastVideoSrcRef = useRef<string | null>(null)
 
   const segments = useMemo<Segment[]>(
     () => [
@@ -571,6 +573,17 @@ export function ScrollStoryScene() {
   }, [resolvedVideoSrc, activeVideo?.mode])
 
   useEffect(() => {
+    if (!resolvedVideoSrc) return
+    setPreviousVideoSrc((current) => {
+      if (lastVideoSrcRef.current && lastVideoSrcRef.current !== resolvedVideoSrc) {
+        return lastVideoSrcRef.current
+      }
+      return current ?? resolvedVideoSrc
+    })
+    lastVideoSrcRef.current = resolvedVideoSrc
+  }, [resolvedVideoSrc])
+
+  useEffect(() => {
     const video = videoRef.current
     if (!video || !videoSrc) return
 
@@ -614,9 +627,20 @@ export function ScrollStoryScene() {
     }
   }, [videoMode, allowScrub, videoSrc])
 
+  const scrubTransitionWindow = 0.45
+
   useEffect(() => {
-    localProgressRef.current = activeSegment.localProgress
-  }, [activeSegment.localProgress])
+    const isScrubTransition = activeSegment.kind === 'transition' && activeVideo?.mode === 'scrub'
+    const scrubProgress = isScrubTransition
+      ? clamp((activeSegment.localProgress - scrubTransitionWindow) / (1 - scrubTransitionWindow))
+      : activeSegment.localProgress
+    localProgressRef.current = scrubProgress
+  }, [
+    activeSegment.kind,
+    activeSegment.localProgress,
+    activeVideo?.mode,
+    scrubTransitionWindow,
+  ])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -712,6 +736,17 @@ export function ScrollStoryScene() {
   const showVideo =
     Boolean(activeVideo) && (activeSegment.kind !== 'content' || !activeSegment.backgroundColor)
 
+  const isScrubTransition = activeSegment.kind === 'transition' && activeVideo?.mode === 'scrub'
+  const transitionProgress = isScrubTransition
+    ? clamp(activeSegment.localProgress / scrubTransitionWindow)
+    : 1
+  const showPreviousVideo =
+    isScrubTransition && !reducedMotion && Boolean(previousVideoSrc) && transitionProgress < 1
+  const incomingOpacity = isScrubTransition && !reducedMotion ? (showPreviousVideo ? transitionProgress : 1) : 1
+  const incomingBlur = isScrubTransition && !reducedMotion ? lerp(12, 0, transitionProgress) : 0
+  const outgoingOpacity = showPreviousVideo ? 1 - transitionProgress : 0
+  const outgoingBlur = showPreviousVideo ? lerp(0, 10, transitionProgress) : 0
+
   return (
     <section ref={sectionRef} className="relative" style={{ height: `${totalHeightVh}vh` }}>
       <div
@@ -723,9 +758,27 @@ export function ScrollStoryScene() {
           zIndex: isActive ? 1 : 0,
         }}
       >
-        <div className="absolute inset-0">
+        <div className="absolute inset-0" style={{ backgroundColor: '#000' }}>
           {activeSegment.backgroundColor && (
             <div className={cn('absolute inset-0', activeSegment.backgroundColor)} />
+          )}
+          {showPreviousVideo && (
+            <video
+              muted
+              playsInline
+              preload="auto"
+              src={previousVideoSrc ?? undefined}
+              autoPlay
+              loop
+              aria-hidden="true"
+              tabIndex={-1}
+              className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+              style={{
+                opacity: outgoingOpacity,
+                filter: `blur(${outgoingBlur}px)`,
+                backgroundColor: '#000',
+              }}
+            />
           )}
           {showVideo && (
             <video
@@ -737,6 +790,11 @@ export function ScrollStoryScene() {
               aria-hidden="true"
               tabIndex={-1}
               className="absolute inset-0 h-full w-full object-cover pointer-events-none"
+              style={{
+                opacity: incomingOpacity,
+                filter: incomingBlur ? `blur(${incomingBlur}px)` : undefined,
+                backgroundColor: '#000',
+              }}
             />
           )}
           {activeSegment.overlay?.(activeSegment.localProgress)}
