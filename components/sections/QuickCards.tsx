@@ -1,7 +1,7 @@
 'use client'
 
 import { ScrollScrubVideoSection } from '@/components/ScrollScrubVideoSection'
-import { Glass } from '@/components/ui/Glass'
+import { LiquidGlass } from '@/components/ui/LiquidGlass'
 
 interface Card {
   title: string
@@ -32,7 +32,7 @@ export function QuickCards() {
     <ScrollScrubVideoSection className="bg-black" heightVh={260} id="quick-info">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {cards.map((card) => (
-          <Glass
+          <LiquidGlass
             key={card.title}
             variant="hero"
             className="h-full text-center"
@@ -40,7 +40,7 @@ export function QuickCards() {
             <div className="mb-4 text-4xl">{card.icon}</div>
             <h3 className="font-display text-2xl text-dark-gray mb-2">{card.title}</h3>
             <p className="text-medium-gray">{card.description}</p>
-          </Glass>
+          </LiquidGlass>
         ))}
       </div>
     </ScrollScrubVideoSection>

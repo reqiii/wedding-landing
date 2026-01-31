@@ -244,7 +244,7 @@ export function ScrollStoryScene() {
         },
         render: (localProgress) => (
           <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="space-y-8">
+            <Glass variant="panel" className="glass-no-edge space-y-8">
               <h2 className="font-display text-3xl md:text-4xl text-dark-gray text-center">
                 Главная информация
               </h2>
@@ -331,7 +331,7 @@ export function ScrollStoryScene() {
         },
         render: (localProgress) => (
           <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="space-y-6">
+            <Glass variant="panel" className="glass-no-edge space-y-6">
               <h2 className="font-display text-3xl md:text-4xl text-dark-gray text-center">
                 Локация и трансфер
               </h2>
@@ -382,7 +382,7 @@ export function ScrollStoryScene() {
         backgroundColor: 'bg-light-gray',
         render: (localProgress) => (
           <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="space-y-6">
+            <Glass variant="panel" className="glass-no-edge space-y-6">
               <div className="text-center space-y-2">
                 <h2 className="font-display text-3xl md:text-4xl text-dark-gray">
                   Анкета гостя
@@ -417,7 +417,7 @@ export function ScrollStoryScene() {
         },
         render: (localProgress) => (
           <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="text-center space-y-6">
+            <Glass variant="panel" className="glass-no-edge text-center space-y-6">
               <h2 className="font-display text-3xl md:text-4xl text-dark-gray">
                 Мы вас ждём
               </h2>
@@ -638,22 +638,22 @@ const Countdown = () => {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-dark-gray">
-      <div className="rounded-medium bg-white/40 px-4 py-3">
+      <Glass variant="card" className="glass-compact text-center">
         <div className="text-3xl font-semibold">{display.days}</div>
         <div className="text-sm text-medium-gray">дней</div>
-      </div>
-      <div className="rounded-medium bg-white/40 px-4 py-3">
+      </Glass>
+      <Glass variant="card" className="glass-compact text-center">
         <div className="text-3xl font-semibold">{display.hours}</div>
         <div className="text-sm text-medium-gray">часов</div>
-      </div>
-      <div className="rounded-medium bg-white/40 px-4 py-3">
+      </Glass>
+      <Glass variant="card" className="glass-compact text-center">
         <div className="text-3xl font-semibold">{display.minutes}</div>
         <div className="text-sm text-medium-gray">минут</div>
-      </div>
-      <div className="rounded-medium bg-white/40 px-4 py-3">
+      </Glass>
+      <Glass variant="card" className="glass-compact text-center">
         <div className="text-3xl font-semibold">{display.seconds}</div>
         <div className="text-sm text-medium-gray">секунд</div>
-      </div>
+      </Glass>
     </div>
   )
 }

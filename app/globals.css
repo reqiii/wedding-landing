@@ -154,6 +154,10 @@ body::-webkit-scrollbar {
   padding: clamp(0.6rem, 1.3vw, 1.1rem);
 }
 
+.glass-compact .glass-content {
+  padding: 0.75rem 1rem;
+}
+
 .glass-button .glass-content {
   padding: 0.75rem 1.5rem;
 }
@@ -166,6 +170,22 @@ body::-webkit-scrollbar {
 }
 
 .glass-effects-off .glass-refraction-edge {
+  display: none;
+}
+
+.glass-no-edge .glass-refraction-edge {
+  display: none;
+}
+
+.glass-no-edge {
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+
+.glass-no-edge .glass-refraction,
+.glass-no-edge .glass-refraction-edge,
+.glass-no-edge .glass-surface {
   display: none;
 }
 
