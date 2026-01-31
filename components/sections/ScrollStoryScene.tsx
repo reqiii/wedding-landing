@@ -133,6 +133,54 @@ const ScenePanel = ({
   )
 }
 
+type TextStyleBuilder = (index: number) => React.CSSProperties
+
+type PushUpPanelProps = {
+  progress: number
+  reducedMotion: boolean
+  className?: string
+  render: (textStyle: TextStyleBuilder) => JSX.Element
+}
+
+const PushUpPanel = ({ progress, reducedMotion, className, render }: PushUpPanelProps) => {
+  const resolvedProgress = reducedMotion ? 1 : progress
+  const moveEnd = 0.35
+  const expandEnd = 0.4
+  const textStart = moveEnd + 0.08
+  const textDuration = 0.14
+  const moveProgress = clamp(resolvedProgress / moveEnd)
+  const expandProgress = clamp((resolvedProgress - 0.05) / (expandEnd - 0.05))
+  const textProgress = clamp((resolvedProgress - textStart) / textDuration)
+
+  const translateY = lerp(110, 0, moveProgress)
+  const scaleY = lerp(0.78, 1, expandProgress)
+
+  const buildTextStyle = (index: number) => {
+    const staggerStart = index * 0.12
+    const localText = clamp((textProgress - staggerStart) / 0.7)
+    const opacity = clamp(localText * 1.4)
+    return {
+      opacity,
+      transform: `translate3d(0, ${lerp(16, 0, localText)}px, 0)`,
+      transition: 'none',
+    }
+  }
+
+  return (
+    <div className={cn('mx-auto w-full max-w-4xl', className)}>
+      <div
+        style={{
+          transform: `translate3d(0, ${translateY}vh, 0) scaleY(${scaleY})`,
+          transformOrigin: 'bottom center',
+          willChange: 'transform',
+        }}
+      >
+        {render(buildTextStyle)}
+      </div>
+    </div>
+  )
+}
+
 export function ScrollStoryScene() {
   const sectionRef = useRef<HTMLElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -211,25 +259,31 @@ export function ScrollStoryScene() {
           mode: 'hold',
         },
         render: (localProgress) => (
-          <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel">
-              <div className="text-center space-y-6">
-                <h2 className="font-display text-3xl md:text-4xl text-dark-gray">
-                  История и приглашение
-                </h2>
-                <div className="space-y-4 text-medium-gray text-lg leading-relaxed">
-                  <p>
-                    Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей
-                    истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов.
-                  </p>
-                  <p>
-                    Нам важны ваши присутствие и поддержка — будем счастливы видеть вас рядом в
-                    этот особенный день.
-                  </p>
+          <PushUpPanel
+            progress={localProgress}
+            reducedMotion={reducedMotion}
+            render={(textStyle) => (
+              <Glass variant="panel">
+                <div className="text-center space-y-6">
+                  <div style={textStyle(0)}>
+                    <h2 className="font-display text-3xl md:text-4xl text-dark-gray">
+                      История и приглашение
+                    </h2>
+                  </div>
+                  <div style={textStyle(1)} className="space-y-4 text-medium-gray text-lg leading-relaxed">
+                    <p>
+                      Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей
+                      истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов.
+                    </p>
+                    <p>
+                      Нам важны ваши присутствие и поддержка — будем счастливы видеть вас рядом в
+                      этот особенный день.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Glass>
-          </ScenePanel>
+              </Glass>
+            )}
+          />
         ),
       },
       {
@@ -252,71 +306,77 @@ export function ScrollStoryScene() {
           mode: 'hold',
         },
         render: (localProgress) => (
-          <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="glass-no-edge space-y-8">
-              <h2 className="font-display text-3xl md:text-4xl text-dark-gray text-center">
-                Главная информация
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-medium-gray">
-                <div className="space-y-3">
-                  <h3 className="font-display text-2xl text-dark-gray">Тайминг</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between gap-4">
-                      <span className="font-semibold text-dark-gray">16:00</span>
-                      <span>Сбор гостей</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="font-semibold text-dark-gray">17:00</span>
-                      <span>Церемония</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="font-semibold text-dark-gray">18:00</span>
-                      <span>Ужин и программа</span>
-                    </div>
-                    <div className="flex justify-between gap-4">
-                      <span className="font-semibold text-dark-gray">22:30</span>
-                      <span>Танцы и финал</span>
+          <PushUpPanel
+            progress={localProgress}
+            reducedMotion={reducedMotion}
+            render={(textStyle) => (
+              <Glass variant="panel" className="glass-no-edge space-y-8">
+                <div style={textStyle(0)}>
+                  <h2 className="font-display text-3xl md:text-4xl text-dark-gray text-center">
+                    Главная информация
+                  </h2>
+                </div>
+                <div style={textStyle(1)} className="grid grid-cols-1 md:grid-cols-2 gap-6 text-medium-gray">
+                  <div className="space-y-3">
+                    <h3 className="font-display text-2xl text-dark-gray">Тайминг</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between gap-4">
+                        <span className="font-semibold text-dark-gray">16:00</span>
+                        <span>Сбор гостей</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="font-semibold text-dark-gray">17:00</span>
+                        <span>Церемония</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="font-semibold text-dark-gray">18:00</span>
+                        <span>Ужин и программа</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="font-semibold text-dark-gray">22:30</span>
+                        <span>Танцы и финал</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  <h3 className="font-display text-2xl text-dark-gray">Дресс-код</h3>
-                  <p>
-                    Будем благодарны за образы в спокойной палитре. Ниже — 5 оттенков, которые
-                    особенно красиво поддержат атмосферу вечера.
-                  </p>
-                  <div className="flex items-center gap-3 pt-2">
-                    <span className="h-6 w-6 rounded-full bg-[#F5E6D3]" aria-hidden="true" />
-                    <span className="h-6 w-6 rounded-full bg-[#FFD4B3]" aria-hidden="true" />
-                    <span className="h-6 w-6 rounded-full bg-[#FFC4D6]" aria-hidden="true" />
-                    <span className="h-6 w-6 rounded-full bg-[#B8E6E6]" aria-hidden="true" />
-                    <span className="h-6 w-6 rounded-full bg-[#A8D8E8]" aria-hidden="true" />
+                  <div className="space-y-3">
+                    <h3 className="font-display text-2xl text-dark-gray">Дресс-код</h3>
+                    <p>
+                      Будем благодарны за образы в спокойной палитре. Ниже — 5 оттенков, которые
+                      особенно красиво поддержат атмосферу вечера.
+                    </p>
+                    <div className="flex items-center gap-3 pt-2">
+                      <span className="h-6 w-6 rounded-full bg-[#F5E6D3]" aria-hidden="true" />
+                      <span className="h-6 w-6 rounded-full bg-[#FFD4B3]" aria-hidden="true" />
+                      <span className="h-6 w-6 rounded-full bg-[#FFC4D6]" aria-hidden="true" />
+                      <span className="h-6 w-6 rounded-full bg-[#B8E6E6]" aria-hidden="true" />
+                      <span className="h-6 w-6 rounded-full bg-[#A8D8E8]" aria-hidden="true" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="font-display text-2xl text-dark-gray">Подарки</h3>
+                    <p>
+                      Для нас главное — ваше присутствие. Если хотите сделать подарок, будем рады
+                      вашему вкладу в нашу общую мечту о путешествии.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="font-display text-2xl text-dark-gray">Организатор</h3>
+                    <p>По всем вопросам можно обращаться к нашему организатору.</p>
+                    <p>
+                      <strong className="text-dark-gray">Анна, свадебный координатор</strong>
+                      <br />
+                      Телефон: +7 (999) 123-45-67
+                      <br />
+                      Telegram: @wedding_helper
+                    </p>
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  <h3 className="font-display text-2xl text-dark-gray">Подарки</h3>
-                  <p>
-                    Для нас главное — ваше присутствие. Если хотите сделать подарок, будем рады
-                    вашему вкладу в нашу общую мечту о путешествии.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <h3 className="font-display text-2xl text-dark-gray">Организатор</h3>
-                  <p>По всем вопросам можно обращаться к нашему организатору.</p>
-                  <p>
-                    <strong className="text-dark-gray">Анна, свадебный координатор</strong>
-                    <br />
-                    Телефон: +7 (999) 123-45-67
-                    <br />
-                    Telegram: @wedding_helper
-                  </p>
-                </div>
-              </div>
-            </Glass>
-          </ScenePanel>
+              </Glass>
+            )}
+          />
         ),
       },
       {
@@ -339,36 +399,42 @@ export function ScrollStoryScene() {
           mode: 'hold',
         },
         render: (localProgress) => (
-          <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="glass-no-edge space-y-6">
-              <h2 className="font-display text-3xl md:text-4xl text-dark-gray text-center">
-                Локация и трансфер
-              </h2>
-              <div className="space-y-4 text-medium-gray text-lg leading-relaxed">
-                <div>
-                  <h3 className="font-display text-2xl text-dark-gray mb-2">Локация</h3>
-                  <p>Загородная усадьба «Белый сад»</p>
-                  <p>Московская область, Истринский район</p>
+          <PushUpPanel
+            progress={localProgress}
+            reducedMotion={reducedMotion}
+            render={(textStyle) => (
+              <Glass variant="panel" className="glass-no-edge space-y-6">
+                <div style={textStyle(0)}>
+                  <h2 className="font-display text-3xl md:text-4xl text-dark-gray text-center">
+                    Локация и трансфер
+                  </h2>
                 </div>
+                <div style={textStyle(1)} className="space-y-4 text-medium-gray text-lg leading-relaxed">
+                  <div>
+                    <h3 className="font-display text-2xl text-dark-gray mb-2">Локация</h3>
+                    <p>Загородная усадьба «Белый сад»</p>
+                    <p>Московская область, Истринский район</p>
+                  </div>
 
-                <div>
-                  <h3 className="font-display text-2xl text-dark-gray mb-2">Как добраться</h3>
-                  <p>
-                    На личном автомобиле — парковка на территории. Маршрут будет доступен в день
-                    мероприятия.
-                  </p>
-                </div>
+                  <div>
+                    <h3 className="font-display text-2xl text-dark-gray mb-2">Как добраться</h3>
+                    <p>
+                      На личном автомобиле — парковка на территории. Маршрут будет доступен в день
+                      мероприятия.
+                    </p>
+                  </div>
 
-                <div>
-                  <h3 className="font-display text-2xl text-dark-gray mb-2">Трансфер</h3>
-                  <p>
-                    Для гостей будет организован трансфер из центра города. В анкете ниже укажите,
-                    нужен ли он вам.
-                  </p>
+                  <div>
+                    <h3 className="font-display text-2xl text-dark-gray mb-2">Трансфер</h3>
+                    <p>
+                      Для гостей будет организован трансфер из центра города. В анкете ниже укажите,
+                      нужен ли он вам.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Glass>
-          </ScenePanel>
+              </Glass>
+            )}
+          />
         ),
       },
       {
@@ -390,20 +456,28 @@ export function ScrollStoryScene() {
         lengthVh: 170,
         backgroundColor: 'bg-light-gray',
         render: (localProgress) => (
-          <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="glass-no-edge space-y-6">
-              <div className="text-center space-y-2">
-                <h2 className="font-display text-3xl md:text-4xl text-dark-gray">
-                  Анкета гостя
-                </h2>
-                <p className="text-medium-gray text-lg">
-                    Информация поможет нам при организации торжества.
-                    <br />Мы будем ждать от вас ответ до 30 июня.
-                </p>
-              </div>
-              <RSVPForm />
-            </Glass>
-          </ScenePanel>
+          <PushUpPanel
+            progress={localProgress}
+            reducedMotion={reducedMotion}
+            render={(textStyle) => (
+              <Glass variant="panel" className="glass-no-edge space-y-6">
+                <div className="text-center space-y-2">
+                  <div style={textStyle(0)}>
+                    <h2 className="font-display text-3xl md:text-4xl text-dark-gray">
+                      Анкета гостя
+                    </h2>
+                  </div>
+                  <div style={textStyle(1)}>
+                    <p className="text-medium-gray text-lg">
+                      Информация поможет нам при организации торжества.
+                      <br />Мы будем ждать от вас ответ до 30 июня.
+                    </p>
+                  </div>
+                </div>
+                <RSVPForm />
+              </Glass>
+            )}
+          />
         ),
       },
       {
@@ -426,14 +500,20 @@ export function ScrollStoryScene() {
           mode: 'hold',
         },
         render: (localProgress) => (
-          <ScenePanel progress={localProgress} reducedMotion={reducedMotion}>
-            <Glass variant="panel" className="glass-no-edge text-center space-y-6">
-              <h2 className="font-display text-3xl md:text-4xl text-dark-gray">
-                Мы вас ждём
-              </h2>
-              <Countdown />
-            </Glass>
-          </ScenePanel>
+          <PushUpPanel
+            progress={localProgress}
+            reducedMotion={reducedMotion}
+            render={(textStyle) => (
+              <Glass variant="panel" className="glass-no-edge text-center space-y-6">
+                <div style={textStyle(0)}>
+                  <h2 className="font-display text-3xl md:text-4xl text-dark-gray">Мы вас ждём</h2>
+                </div>
+                <div style={textStyle(1)}>
+                  <Countdown />
+                </div>
+              </Glass>
+            )}
+          />
         ),
       },
     ],
