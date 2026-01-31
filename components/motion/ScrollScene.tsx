@@ -30,11 +30,27 @@ const smoothstep = (edge0: number, edge1: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
+type ScrollMetrics = {
+  scrollY: number
+  viewportH: number
+  docH: number
+}
+
 const scrollSubscribers = new Set<() => void>()
+let scrollMetrics: ScrollMetrics = { scrollY: 0, viewportH: 0, docH: 0 }
 let scrollRaf = 0
+
+const computeScrollMetrics = (): ScrollMetrics => {
+  const scrollElement = document.scrollingElement ?? document.documentElement ?? document.body
+  const viewportH = window.innerHeight || 0
+  const docH = scrollElement.scrollHeight || 0
+  const scrollY = Math.max(window.scrollY, scrollElement.scrollTop, document.body.scrollTop)
+  return { scrollY, viewportH, docH }
+}
 
 const runSubscribers = () => {
   scrollRaf = 0
+  scrollMetrics = computeScrollMetrics()
   scrollSubscribers.forEach((subscriber) => subscriber())
 }
 
@@ -71,6 +87,10 @@ const subscribeToScroll = (callback: () => void) => {
     }
   }
 }
+
+export const getScrollMetrics = () => scrollMetrics
+
+export const subscribeToScrollMetrics = (callback: () => void) => subscribeToScroll(callback)
 
 const usePrefersReducedMotion = () => {
   const [reduced, setReduced] = useState(false)

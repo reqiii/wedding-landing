@@ -2,6 +2,7 @@
 
 import type { HTMLAttributes, ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { getScrollMetrics, subscribeToScrollMetrics } from '@/components/motion/ScrollScene'
 
 type ScrollScrubChildren = ReactNode | ((progress: number, reducedMotion: boolean) => ReactNode)
 
@@ -35,7 +36,11 @@ export function ScrollScrubVideoSection({
   const sectionRef = useRef<HTMLElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const rafRef = useRef<number | null>(null)
+  const scrubRafRef = useRef<number | null>(null)
   const progressRef = useRef(0)
+  const lastProgressRef = useRef(0)
+  const lastActiveRef = useRef(false)
+  const isActiveRef = useRef(false)
   const durationRef = useRef(0)
   const isReadyRef = useRef(false)
 
@@ -125,47 +130,82 @@ export function ScrollScrubVideoSection({
     const section = sectionRef.current
     if (!section) return
 
-    let isTicking = false
     const updateProgress = () => {
       const rect = section.getBoundingClientRect()
-      const vh = window.innerHeight
+      const { viewportH } = getScrollMetrics()
+      const vh = viewportH || window.innerHeight
       const startPx = vh * 0.8
       const endPx = vh * 0.2
       const total = Math.max(1, rect.height + (startPx - endPx))
       const progressRaw = (startPx - rect.top) / total
       const scrollProgress = clamp(progressRaw, 0, 1)
+      const nextActive = progressRaw >= 0 && progressRaw <= 1
       progressRef.current = scrollProgress
-      setProgress(scrollProgress)
-      setIsActive(progressRaw >= 0 && progressRaw <= 1)
 
-      if (allowScrub && isReadyRef.current && videoRef.current) {
-        const normalizedVideoProgress = clamp(scrollProgress / videoProgressEnd, 0, 1)
-        const targetTime = normalizedVideoProgress * durationRef.current
-        if (Math.abs(videoRef.current.currentTime - targetTime) > 0.02) {
-          videoRef.current.currentTime = targetTime
-        }
+      if (Math.abs(scrollProgress - lastProgressRef.current) > 0.001) {
+        lastProgressRef.current = scrollProgress
+        setProgress(scrollProgress)
+      }
+      if (nextActive !== lastActiveRef.current) {
+        lastActiveRef.current = nextActive
+        isActiveRef.current = nextActive
+        setIsActive(nextActive)
+      } else {
+        isActiveRef.current = nextActive
       }
     }
 
-    const updateOnScroll = () => {
-      if (!isTicking) {
-        isTicking = true
+    const unsubscribe = subscribeToScrollMetrics(() => {
+      if (!rafRef.current) {
         rafRef.current = window.requestAnimationFrame(() => {
-          isTicking = false
+          rafRef.current = null
           updateProgress()
         })
       }
-    }
+    })
 
     updateProgress()
-    window.addEventListener('scroll', updateOnScroll, { passive: true })
-    window.addEventListener('resize', updateOnScroll)
-
     return () => {
-      window.removeEventListener('scroll', updateOnScroll)
-      window.removeEventListener('resize', updateOnScroll)
+      unsubscribe()
       if (rafRef.current) {
         window.cancelAnimationFrame(rafRef.current)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    if (!allowScrub) {
+      if (scrubRafRef.current) {
+        window.cancelAnimationFrame(scrubRafRef.current)
+        scrubRafRef.current = null
+      }
+      return
+    }
+
+    let isMounted = true
+    const tick = () => {
+      if (!isMounted) return
+      if (!isActiveRef.current || !isReadyRef.current || durationRef.current === 0) {
+        scrubRafRef.current = window.requestAnimationFrame(tick)
+        return
+      }
+      const normalizedVideoProgress = clamp(progressRef.current / videoProgressEnd, 0, 1)
+      const targetTime = normalizedVideoProgress * durationRef.current
+      if (Math.abs(video.currentTime - targetTime) > 0.02) {
+        video.currentTime = targetTime
+      }
+      scrubRafRef.current = window.requestAnimationFrame(tick)
+    }
+
+    scrubRafRef.current = window.requestAnimationFrame(tick)
+    return () => {
+      isMounted = false
+      if (scrubRafRef.current) {
+        window.cancelAnimationFrame(scrubRafRef.current)
+        scrubRafRef.current = null
       }
     }
   }, [allowScrub, videoProgressEnd])

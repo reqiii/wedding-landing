@@ -98,6 +98,7 @@ body::-webkit-scrollbar {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+  contain: paint;
 }
 
 .glass-refraction,
@@ -225,6 +226,7 @@ body::-webkit-scrollbar {
 
 .scroll-hint {
   animation: scrollHint 1.1s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @keyframes scrollRing {
@@ -249,11 +251,13 @@ body::-webkit-scrollbar {
 
 .scroll-hint-ring {
   animation: scrollRing 5s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 @layer components {
   .scene-layer {
     will-change: transform, opacity;
     transform-origin: center top;
+    contain: paint;
   }
 }

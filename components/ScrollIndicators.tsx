@@ -1,11 +1,14 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { getScrollMetrics, subscribeToScrollMetrics } from '@/components/motion/ScrollScene'
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
 
 export function ScrollIndicators() {
   const rafRef = useRef<number | null>(null)
+  const lastProgressRef = useRef(0)
+  const lastHintRef = useRef(true)
   const [progress, setProgress] = useState(0)
   const [showHint, setShowHint] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -22,35 +25,34 @@ export function ScrollIndicators() {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    let isTicking = false
-    const getScrollElement = () =>
-      document.scrollingElement ?? document.documentElement ?? document.body
     const updateProgress = () => {
-      const scrollElement = getScrollElement()
-      const total = Math.max(0, scrollElement.scrollHeight - window.innerHeight)
-      const scrollTop = Math.max(window.scrollY, scrollElement.scrollTop, document.body.scrollTop)
-      const nextProgress = total > 0 ? clamp(scrollTop / total) : 0
-      setProgress(nextProgress)
-      setShowHint(window.scrollY < window.innerHeight * 0.25)
-    }
+      const { scrollY, viewportH, docH } = getScrollMetrics()
+      const total = Math.max(0, docH - viewportH)
+      const nextProgress = total > 0 ? clamp(scrollY / total) : 0
+      const nextHint = scrollY < viewportH * 0.25
 
-    const updateOnScroll = () => {
-      if (!isTicking) {
-        isTicking = true
-        rafRef.current = window.requestAnimationFrame(() => {
-          isTicking = false
-          updateProgress()
-        })
+      if (Math.abs(nextProgress - lastProgressRef.current) > 0.001) {
+        lastProgressRef.current = nextProgress
+        setProgress(nextProgress)
+      }
+      if (nextHint !== lastHintRef.current) {
+        lastHintRef.current = nextHint
+        setShowHint(nextHint)
       }
     }
 
-    updateProgress()
-    window.addEventListener('scroll', updateOnScroll, { passive: true })
-    window.addEventListener('resize', updateOnScroll)
+    const unsubscribe = subscribeToScrollMetrics(() => {
+      if (!rafRef.current) {
+        rafRef.current = window.requestAnimationFrame(() => {
+          rafRef.current = null
+          updateProgress()
+        })
+      }
+    })
 
+    updateProgress()
     return () => {
-      window.removeEventListener('scroll', updateOnScroll)
-      window.removeEventListener('resize', updateOnScroll)
+      unsubscribe()
       if (rafRef.current) {
         window.cancelAnimationFrame(rafRef.current)
       }
