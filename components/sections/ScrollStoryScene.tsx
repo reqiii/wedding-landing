@@ -211,7 +211,7 @@ export function ScrollStoryScene() {
       {
         id: 'section-1',
         kind: 'content',
-        lengthVh: 170,
+        lengthVh: 100,
         video: {
           desktop: '/api/hero-video?asset=samet',
           mobile: '/api/hero-video?asset=samet',
