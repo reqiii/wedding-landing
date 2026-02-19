@@ -738,6 +738,7 @@ export function ScrollStoryScene() {
   const incomingBlur = isScrubTransition && !reducedMotion ? lerp(12, 0, transitionProgress) : 0
   const outgoingOpacity = showPreviousVideo ? 1 - transitionProgress : 0
   const outgoingBlur = showPreviousVideo ? lerp(0, 10, transitionProgress) : 0
+  const isHeroLogoSegment = activeSegment.id === 'section-1'
 
   return (
     <section ref={sectionRef} className="relative" style={{ height: `${totalHeightVh}vh` }}>
@@ -791,7 +792,7 @@ export function ScrollStoryScene() {
           )}
           {activeSegment.overlay?.(activeSegment.localProgress)}
         </div>
-        <div className="relative z-10 flex h-full items-center">
+        <div className={cn('relative z-10 flex h-full', isHeroLogoSegment ? 'items-start' : 'items-center')}>
           <div className="mx-auto w-full max-w-6xl px-4">
             {activeSegment.render?.(activeSegment.localProgress, reducedMotion)}
           </div>
