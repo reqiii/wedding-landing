@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
   const videoPath = resolvedAsset || fallbackAsset
     ? path.join(process.cwd(), 'app', 'api', 'hero-main-video', resolvedAsset ?? fallbackAsset)
     : path.join(process.cwd(), 'Samet.mp4')
-  const logoPath = path.join(process.cwd(), 'app', 'api', 'hero-main-video', 'logo.png')
+  const logoPath = path.join(process.cwd(), 'app', 'api', 'hero-main-video', 'logo.svg')
   const isDev = process.env.NODE_ENV !== 'production'
   let fileStat
 
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     return new Response(readable, {
       headers: {
         'Content-Length': String(fileStat.size),
-        'Content-Type': 'image/png',
+        'Content-Type': 'image/svg+xml',
         'Cache-Control': cacheControl,
       },
     })
