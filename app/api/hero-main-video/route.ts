@@ -1,7 +1,11 @@
 import { createReadStream, existsSync } from 'fs'
 import { stat } from 'fs/promises'
-import path from 'path'
 import type { NextRequest } from 'next/server'
+import {
+  resolveHeroMainAssetFile,
+  type HeroMainVideoRouteAsset,
+  type LandingVideoVariant,
+} from '@/lib/server/landingAssetFiles'
 
 export const runtime = 'nodejs'
 
@@ -33,33 +37,18 @@ const createWebStream = (stream: ReturnType<typeof createReadStream>, signal: Ab
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
-  const asset = searchParams.get('asset') ?? 'hero'
-  const version = searchParams.get('v') ?? '1080'
-  const assetKey = `${asset}-${version}`
+  const asset = (searchParams.get('asset') ?? 'hero') as HeroMainVideoRouteAsset
+  const version = (searchParams.get('v') ?? '1080') as LandingVideoVariant
   const isLogo = asset === 'logo'
-
-  const assetFiles: Record<string, string> = {
-    'hero-1080': 'hero_scroll_1080p_iframe.mp4',
-    'hero-720': 'hero_scroll_720p_iframe.mp4',
-    'section1-1080': 'hero_scroll_1080p_iframe_1_section.mp4',
-    'section1-720': 'hero_scroll_720p_iframe_1_section.mp4',
-    'section2-1080': 'hero_scroll_1080p_iframe_2_section.mp4',
-    'section2-720': 'hero_scroll_720p_iframe_2_section.mp4',
-    'sun-1080': 'the_sun_1080p_iframe.mp4',
-    'sun-720': 'the_sun_720p_iframe.mp4',
-  }
-
-  const resolvedAsset = assetFiles[assetKey]
-  const fallbackAsset = assetFiles[`${asset}-1080`]
-  const videoPath = resolvedAsset || fallbackAsset
-    ? path.join(process.cwd(), 'app', 'api', 'hero-main-video', resolvedAsset ?? fallbackAsset)
-    : path.join(process.cwd(), 'Samet.mp4')
-  const logoPath = path.join(process.cwd(), 'app', 'api', 'hero-main-video', 'logo.svg')
+  const resolvedFile = resolveHeroMainAssetFile(
+    asset,
+    version === '720' ? '720' : '1080'
+  )
   const isDev = process.env.NODE_ENV !== 'production'
   let fileStat
 
   try {
-    const assetPath = isLogo ? logoPath : videoPath
+    const assetPath = resolvedFile.path
     if (!existsSync(assetPath)) {
       throw new Error(`Hero main asset missing: ${assetPath}`)
     }
@@ -67,7 +56,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (isDev) {
       console.error('Hero main video not found:', error)
-      return new Response(`Hero main asset not found at: ${isLogo ? logoPath : videoPath}`, {
+      return new Response(`Hero main asset not found at: ${resolvedFile.path}`, {
         status: 404,
         headers: {
           'Content-Type': 'text/plain; charset=utf-8',
@@ -83,12 +72,12 @@ export async function GET(request: NextRequest) {
   const range = request.headers.get('range')
 
   if (isLogo) {
-    const stream = createReadStream(logoPath)
+    const stream = createReadStream(resolvedFile.path)
     const readable = createWebStream(stream, request.signal)
     return new Response(readable, {
       headers: {
         'Content-Length': String(fileStat.size),
-        'Content-Type': 'image/svg+xml',
+        'Content-Type': resolvedFile.contentType,
         'Cache-Control': cacheControl,
       },
     })
@@ -108,7 +97,7 @@ export async function GET(request: NextRequest) {
       })
     }
     const chunkSize = end - start + 1
-    const stream = createReadStream(videoPath, { start, end })
+    const stream = createReadStream(resolvedFile.path, { start, end })
     const readable = createWebStream(stream, request.signal)
 
     return new Response(readable, {
@@ -117,18 +106,18 @@ export async function GET(request: NextRequest) {
         'Content-Range': `bytes ${start}-${end}/${fileStat.size}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': String(chunkSize),
-        'Content-Type': 'video/mp4',
+        'Content-Type': resolvedFile.contentType,
         'Cache-Control': cacheControl,
       },
     })
   }
 
-  const stream = createReadStream(videoPath)
+  const stream = createReadStream(resolvedFile.path)
   const readable = createWebStream(stream, request.signal)
   return new Response(readable, {
     headers: {
       'Content-Length': String(fileStat.size),
-      'Content-Type': 'video/mp4',
+      'Content-Type': resolvedFile.contentType,
       'Accept-Ranges': 'bytes',
       'Cache-Control': cacheControl,
     },

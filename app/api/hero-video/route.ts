@@ -1,7 +1,12 @@
 import { createReadStream, existsSync } from 'fs'
 import { stat } from 'fs/promises'
-import path from 'path'
 import type { NextRequest } from 'next/server'
+import {
+  resolveHeroVideoAssetFile,
+  resolveHeroVideoPosterFile,
+  type HeroVideoRouteAsset,
+  type LandingVideoVariant,
+} from '@/lib/server/landingAssetFiles'
 
 export const runtime = 'nodejs'
 
@@ -42,28 +47,20 @@ const createWebStream = (stream: ReturnType<typeof createReadStream>, signal: Ab
     },
   })
 
-function resolveAssetPath(fileName: string) {
-  const rootCandidate = path.join(process.cwd(), fileName)
-  if (existsSync(rootCandidate)) {
-    return rootCandidate
-  }
-
-  return path.join(process.cwd(), 'app', 'api', 'hero-video', fileName)
-}
-
 export async function GET(request: NextRequest) {
   const isDev = process.env.NODE_ENV !== 'production'
   const { searchParams } = request.nextUrl
-  const version = searchParams.get('v') ?? '1080'
+  const version = (searchParams.get('v') ?? '1080') as LandingVideoVariant
   const asset = searchParams.get('asset')
   const isPoster = searchParams.get('poster') === '1' || searchParams.get('asset') === 'poster'
   const cacheControl = isDev ? 'no-store' : 'public, max-age=31536000, immutable'
-  const fileName = isPoster
-    ? POSTER_FILE
-    : asset && asset in SPECIAL_ASSETS
-      ? SPECIAL_ASSETS[asset as keyof typeof SPECIAL_ASSETS]
-      : VIDEO_FILES[version as keyof typeof VIDEO_FILES] ?? VIDEO_FILES['1080']
-  const assetPath = resolveAssetPath(fileName)
+  const resolvedFile = isPoster
+    ? resolveHeroVideoPosterFile()
+    : resolveHeroVideoAssetFile(
+        asset === 'samet' ? ('samet' as HeroVideoRouteAsset) : ('hero' as HeroVideoRouteAsset),
+        version === '720' ? '720' : '1080'
+      )
+  const assetPath = resolvedFile.path
   let fileStat
 
   try {
@@ -94,7 +91,7 @@ export async function GET(request: NextRequest) {
     return new Response(readable, {
       headers: {
         'Content-Length': String(fileStat.size),
-        'Content-Type': 'image/jpeg',
+        'Content-Type': resolvedFile.contentType,
         'Cache-Control': cacheControl,
       },
     })
@@ -124,7 +121,7 @@ export async function GET(request: NextRequest) {
         'Content-Range': `bytes ${start}-${end}/${fileStat.size}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': String(chunkSize),
-        'Content-Type': 'video/mp4',
+        'Content-Type': resolvedFile.contentType,
         'Cache-Control': cacheControl,
       },
     })
@@ -135,7 +132,7 @@ export async function GET(request: NextRequest) {
   return new Response(readable, {
     headers: {
       'Content-Length': String(fileStat.size),
-      'Content-Type': 'video/mp4',
+      'Content-Type': resolvedFile.contentType,
       'Accept-Ranges': 'bytes',
       'Cache-Control': cacheControl,
     },

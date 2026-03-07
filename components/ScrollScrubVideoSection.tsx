@@ -2,6 +2,7 @@
 
 import type { HTMLAttributes, ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLandingPlaybackPolicy } from '@/components/homepage/hooks/useLandingPlaybackPolicy'
 import { getScrollMetrics, subscribeToScrollMetrics } from '@/components/motion/ScrollScene'
 
 type ScrollScrubChildren = ReactNode | ((progress: number, reducedMotion: boolean) => ReactNode)
@@ -44,24 +45,14 @@ export function ScrollScrubVideoSection({
   const durationRef = useRef(0)
   const isReadyRef = useRef(false)
 
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const [isMobileSafari, setIsMobileSafari] = useState(false)
   const [videoSrc, setVideoSrc] = useState(videoSrcDesktop)
   const [progress, setProgress] = useState(0)
   const [isActive, setIsActive] = useState(false)
 
-  const allowScrub = forceScrub ? !isMobileSafari : !prefersReducedMotion && !isMobileSafari
-  const shouldAutoplay = !prefersReducedMotion && !allowScrub
+  const playbackPolicy = useLandingPlaybackPolicy({ forceScrub })
+  const prefersReducedMotion = playbackPolicy.prefersReducedMotion
+  const allowScrub = playbackPolicy.canScrub
   const resolvedPoster = useMemo(() => posterSrc ?? '', [posterSrc])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => setPrefersReducedMotion(mediaQuery.matches)
-    update()
-    mediaQuery.addEventListener('change', update)
-    return () => mediaQuery.removeEventListener('change', update)
-  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -71,16 +62,6 @@ export function ScrollScrubVideoSection({
     mediaQuery.addEventListener('change', update)
     return () => mediaQuery.removeEventListener('change', update)
   }, [videoSrcDesktop, videoSrcMobile])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const ua = window.navigator.userAgent
-    const isIOS = /iP(ad|hone|od)/.test(ua)
-    const isWebkit = /WebKit/.test(ua)
-    const isCriOS = /CriOS/.test(ua)
-    const isFxiOS = /FxiOS/.test(ua)
-    setIsMobileSafari(isIOS && isWebkit && !isCriOS && !isFxiOS)
-  }, [])
 
   useEffect(() => {
     const video = videoRef.current
@@ -107,23 +88,15 @@ export function ScrollScrubVideoSection({
     if (!video) return
 
     if (!allowScrub) {
-      if (shouldAutoplay) {
+      video.pause()
+      if (isReadyRef.current && durationRef.current > 0) {
         video.currentTime = 0
-        video.loop = true
-        video.muted = true
-        video.playsInline = true
-        const playPromise = video.play()
-        if (playPromise && typeof playPromise.catch === 'function') {
-          playPromise.catch(() => undefined)
-        }
-      } else {
-        video.pause()
       }
       return
     }
 
     video.pause()
-  }, [allowScrub, shouldAutoplay, videoSrc])
+  }, [allowScrub, videoSrc])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -240,8 +213,6 @@ export function ScrollScrubVideoSection({
               preload="auto"
               poster={resolvedPoster || undefined}
               src={videoSrc}
-              autoPlay={shouldAutoplay}
-              loop={shouldAutoplay}
               aria-hidden="true"
               tabIndex={-1}
               className="absolute inset-0 h-full w-full object-cover pointer-events-none"
