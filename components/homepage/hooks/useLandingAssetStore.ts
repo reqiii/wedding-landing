@@ -13,14 +13,24 @@ import type { LandingAssetId, LandingDeviceProfile } from '@/lib/landing/mediaMa
 import { getCriticalLandingAssetIds } from '@/lib/landing/preloadPolicy'
 
 type CriticalProgress = {
+  completed: number
   loaded: number
   total: number
   failed: number
 }
 
-export function useLandingAssetStore(deviceProfile: LandingDeviceProfile | null) {
+type UseLandingAssetStoreOptions = {
+  useNativeStrictVideo?: boolean
+}
+
+export function useLandingAssetStore(
+  deviceProfile: LandingDeviceProfile | null,
+  options: UseLandingAssetStoreOptions = {}
+) {
+  const { useNativeStrictVideo = false } = options
   const [assets, setAssets] = useState<LandingAssetStateMap | null>(null)
   const [criticalProgress, setCriticalProgress] = useState<CriticalProgress>({
+    completed: 0,
     loaded: 0,
     total: getCriticalLandingAssetIds().length,
     failed: 0,
@@ -44,6 +54,7 @@ export function useLandingAssetStore(deviceProfile: LandingDeviceProfile | null)
     assetsRef.current = initialAssets
     setAssets(initialAssets)
     setCriticalProgress({
+      completed: 0,
       loaded: 0,
       total: getCriticalLandingAssetIds().length,
       failed: 0,
@@ -135,12 +146,17 @@ export function useLandingAssetStore(deviceProfile: LandingDeviceProfile | null)
 
   const ensureCritical = useCallback(async () => {
     const criticalIds = getCriticalLandingAssetIds()
+    let completed = 0
     let loaded = 0
     let failed = 0
 
     const results = await Promise.all(
       criticalIds.map(async (assetId) => {
-        const result = await ensureAsset(assetId, 'strict')
+        const result = await ensureAsset(
+          assetId,
+          useNativeStrictVideo && assetId !== 'logo' ? 'strict-native' : 'strict'
+        )
+        completed += 1
         if (result.status === 'ready') {
           loaded += 1
         } else {
@@ -148,7 +164,8 @@ export function useLandingAssetStore(deviceProfile: LandingDeviceProfile | null)
         }
 
         setCriticalProgress({
-          loaded: loaded + failed,
+          completed,
+          loaded,
           total: criticalIds.length,
           failed,
         })
@@ -158,7 +175,7 @@ export function useLandingAssetStore(deviceProfile: LandingDeviceProfile | null)
     )
 
     return results
-  }, [ensureAsset])
+  }, [ensureAsset, useNativeStrictVideo])
 
   const warmAssets = useCallback(
     async (assetIds: LandingAssetId[]) => {
@@ -172,9 +189,15 @@ export function useLandingAssetStore(deviceProfile: LandingDeviceProfile | null)
     return getCriticalLandingAssetIds().every((assetId) => assets[assetId].status === 'ready')
   }, [assets])
 
+  const criticalComplete = useMemo(
+    () => criticalProgress.completed >= criticalProgress.total && criticalProgress.total > 0,
+    [criticalProgress.completed, criticalProgress.total]
+  )
+
   return {
     assets,
     criticalProgress,
+    criticalComplete,
     criticalReady,
     ensureCritical,
     warmAssets,

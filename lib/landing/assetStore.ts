@@ -9,7 +9,7 @@ import {
 } from '@/lib/landing/mediaManifest'
 
 export type LandingAssetLoadStatus = 'idle' | 'loading' | 'ready' | 'failed'
-export type LandingAssetLoadStrategy = 'strict' | 'background'
+export type LandingAssetLoadStrategy = 'strict' | 'strict-native' | 'background'
 export type LandingAssetFailureReason = 'timeout' | 'error'
 
 export type LandingAssetState = {
@@ -162,6 +162,46 @@ async function preloadVideoStrict(src: string): Promise<LandingAssetLoadResult> 
   }
 }
 
+function preloadVideoStrictNative(src: string): Promise<LandingAssetLoadResult> {
+  return new Promise((resolve) => {
+    const video = document.createElement('video')
+    let settled = false
+
+    const finish = (result: LandingAssetLoadResult) => {
+      if (settled) return
+      settled = true
+      window.clearTimeout(timeoutId)
+      video.removeEventListener('loadeddata', handleReady)
+      video.removeEventListener('canplaythrough', handleReady)
+      video.removeEventListener('error', handleError)
+      video.pause()
+      video.removeAttribute('src')
+      video.load()
+      resolve(result)
+    }
+
+    const handleReady = () => finish({ status: 'ready' })
+    const handleError = () => finish({ status: 'failed', failureReason: 'error' })
+    const timeoutId = window.setTimeout(
+      () => finish({ status: 'failed', failureReason: 'timeout' }),
+      VIDEO_TIMEOUT_MS
+    )
+
+    video.preload = 'auto'
+    video.muted = true
+    video.playsInline = true
+    video.addEventListener('loadeddata', handleReady)
+    video.addEventListener('canplaythrough', handleReady)
+    video.addEventListener('error', handleError)
+    video.src = src
+    video.load()
+
+    if (video.readyState >= 2) {
+      finish({ status: 'ready' })
+    }
+  })
+}
+
 export async function loadLandingAsset(
   assetId: LandingAssetId,
   deviceProfile: LandingDeviceProfile,
@@ -176,6 +216,10 @@ export async function loadLandingAsset(
 
   if (strategy === 'strict') {
     return preloadVideoStrict(src)
+  }
+
+  if (strategy === 'strict-native') {
+    return preloadVideoStrictNative(src)
   }
 
   return preloadVideoBackground(src)

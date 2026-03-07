@@ -84,7 +84,7 @@ export function ScrollStoryScene({
   const activeAsset = activeSegment.assetId ? assets[activeSegment.assetId] : null
   const activeAssetReady = activeAsset?.status === 'ready'
   const resolvedVideoSrc =
-    activeAsset && activeAsset.kind === 'video' && activeAssetReady
+    activeAsset && activeAsset.kind === 'video' && (activeAssetReady || activeAsset.status === 'failed')
       ? activeAsset.resolvedSrc ?? activeAsset.src
       : null
   const activePlaybackMode = activeSegment.playbackMode ?? 'hold'

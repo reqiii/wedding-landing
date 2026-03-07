@@ -14,9 +14,11 @@ const PRELOADER_OUTRO_MS = 1100
 const SCENE_READY_FALLBACK_MS = 2500
 
 export function HomepageExperience() {
-  const { deviceProfile } = useLandingPlaybackPolicy()
-  const { assets, criticalProgress, criticalReady, ensureCritical, warmAssets } =
-    useLandingAssetStore(deviceProfile)
+  const { deviceProfile, isMobileSafari } = useLandingPlaybackPolicy()
+  const { assets, criticalProgress, criticalComplete, criticalReady, ensureCritical, warmAssets } =
+    useLandingAssetStore(deviceProfile, {
+      useNativeStrictVideo: isMobileSafari,
+    })
   const [sceneReady, setSceneReady] = useState(false)
   const [isPreloaderExiting, setIsPreloaderExiting] = useState(false)
   const [isPreloaderHidden, setIsPreloaderHidden] = useState(false)
@@ -53,23 +55,21 @@ export function HomepageExperience() {
     warmAssets,
   })
 
-  const criticalResolved = criticalProgress.loaded >= criticalProgress.total && criticalProgress.total > 0
-
   useEffect(() => {
-    if (!criticalResolved || sceneReady) return
+    if (!criticalReady || sceneReady) return
 
     const fallbackId = window.setTimeout(() => {
       setSceneReady(true)
     }, SCENE_READY_FALLBACK_MS)
 
     return () => window.clearTimeout(fallbackId)
-  }, [criticalResolved, sceneReady])
+  }, [criticalReady, sceneReady])
 
   useEffect(() => {
-    if (!criticalResolved || !sceneReady || isPreloaderExiting) return
+    if (!criticalComplete || !sceneReady || isPreloaderExiting) return
 
     setIsPreloaderExiting(true)
-  }, [criticalResolved, sceneReady, isPreloaderExiting])
+  }, [criticalComplete, sceneReady, isPreloaderExiting])
 
   useEffect(() => {
     if (!isPreloaderExiting || isPreloaderHidden) return
@@ -86,8 +86,8 @@ export function HomepageExperience() {
       return 'Пожалуйста, подождите, готовим страницу'
     }
 
-    if (!criticalResolved) {
-      return `Пожалуйста, подождите, готовим первую сцену ${criticalProgress.loaded}/${criticalProgress.total}`
+    if (!criticalComplete) {
+      return `Пожалуйста, подождите, готовим первую сцену ${criticalProgress.completed}/${criticalProgress.total}`
     }
 
     if (!criticalReady || criticalProgress.failed > 0) {
@@ -95,7 +95,13 @@ export function HomepageExperience() {
     }
 
     return 'Первая сцена готова, открываем страницу'
-  }, [criticalProgress.failed, criticalProgress.loaded, criticalProgress.total, criticalReady, criticalResolved])
+  }, [
+    criticalComplete,
+    criticalProgress.completed,
+    criticalProgress.failed,
+    criticalProgress.total,
+    criticalReady,
+  ])
 
   return (
     <>
