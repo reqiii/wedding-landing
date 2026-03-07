@@ -5,6 +5,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Glass } from '@/components/ui/Glass'
 import { RSVPForm } from '@/components/forms/RSVPForm'
 import { cn } from '@/lib/utils'
+import {
+  getLandingResponsiveVideoSources,
+  getLandingVideoSource,
+  LANDING_LOGO_SRC,
+} from '@/lib/landingMedia'
 import { getScrollMetrics, subscribeToScrollMetrics } from '@/components/motion/ScrollScene'
 
 type SegmentKind = 'content' | 'transition' | 'fade'
@@ -23,6 +28,10 @@ type Segment = {
   backgroundColor?: string
   render?: (progress: number, reducedMotion: boolean) => JSX.Element
   overlay?: (progress: number) => JSX.Element | null
+}
+
+type ScrollStorySceneProps = {
+  onInitialMediaReady?: () => void
 }
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
@@ -182,7 +191,7 @@ const PushUpPanel = ({ progress, reducedMotion, className, render }: PushUpPanel
   )
 }
 
-export function ScrollStoryScene() {
+export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const rafRef = useRef<number | null>(null)
@@ -205,6 +214,7 @@ export function ScrollStoryScene() {
   const [videoMode, setVideoMode] = useState<SegmentVideo['mode']>('hold')
   const [previousVideoSrc, setPreviousVideoSrc] = useState<string | null>(null)
   const lastVideoSrcRef = useRef<string | null>(null)
+  const hasReportedInitialMediaReadyRef = useRef(false)
 
   const segments = useMemo<Segment[]>(
     () => [
@@ -213,8 +223,8 @@ export function ScrollStoryScene() {
         kind: 'content',
         lengthVh: 100,
         video: {
-          desktop: '/api/hero-video?asset=samet',
-          mobile: '/api/hero-video?asset=samet',
+          desktop: getLandingVideoSource('samet', false),
+          mobile: getLandingVideoSource('samet', true),
           mode: 'loop',
         },
         render: () => (
@@ -226,7 +236,7 @@ export function ScrollStoryScene() {
           >
             <div className="flex justify-center">
               <Image
-                src="/api/hero-main-video?asset=logo"
+                src={LANDING_LOGO_SRC}
                 alt="Логотип"
                 width={500}
                 height={197}
@@ -244,8 +254,7 @@ export function ScrollStoryScene() {
         kind: 'transition',
         lengthVh: 150,
         video: {
-          desktop: '/api/hero-main-video?asset=section1&v=1080',
-          mobile: '/api/hero-main-video?asset=section1&v=720',
+          ...getLandingResponsiveVideoSources('section1'),
           mode: 'scrub',
         },
       },
@@ -254,8 +263,7 @@ export function ScrollStoryScene() {
         kind: 'content',
         lengthVh: 160,
         video: {
-          desktop: '/api/hero-main-video?asset=section1&v=1080',
-          mobile: '/api/hero-main-video?asset=section1&v=720',
+          ...getLandingResponsiveVideoSources('section1'),
           mode: 'hold',
         },
         render: (localProgress) => (
@@ -291,8 +299,7 @@ export function ScrollStoryScene() {
         kind: 'transition',
         lengthVh: 150,
         video: {
-          desktop: '/api/hero-main-video?asset=section2&v=1080',
-          mobile: '/api/hero-main-video?asset=section2&v=720',
+          ...getLandingResponsiveVideoSources('section2'),
           mode: 'scrub',
         },
       },
@@ -301,8 +308,7 @@ export function ScrollStoryScene() {
         kind: 'content',
         lengthVh: 170,
         video: {
-          desktop: '/api/hero-main-video?asset=section2&v=1080',
-          mobile: '/api/hero-main-video?asset=section2&v=720',
+          ...getLandingResponsiveVideoSources('section2'),
           mode: 'hold',
         },
         render: (localProgress) => (
@@ -389,8 +395,7 @@ export function ScrollStoryScene() {
         kind: 'transition',
         lengthVh: 150,
         video: {
-          desktop: '/api/hero-main-video?asset=sun&v=1080',
-          mobile: '/api/hero-main-video?asset=sun&v=720',
+          ...getLandingResponsiveVideoSources('sun'),
           mode: 'scrub',
         },
       },
@@ -399,8 +404,7 @@ export function ScrollStoryScene() {
         kind: 'content',
         lengthVh: 160,
         video: {
-          desktop: '/api/hero-main-video?asset=sun&v=1080',
-          mobile: '/api/hero-main-video?asset=sun&v=720',
+          ...getLandingResponsiveVideoSources('sun'),
           mode: 'hold',
         },
         render: (localProgress) => (
@@ -452,8 +456,7 @@ export function ScrollStoryScene() {
         kind: 'fade',
         lengthVh: 110,
         video: {
-          desktop: '/api/hero-main-video?asset=sun&v=1080',
-          mobile: '/api/hero-main-video?asset=sun&v=720',
+          ...getLandingResponsiveVideoSources('sun'),
           mode: 'hold',
         },
         overlay: (localProgress) => (
@@ -497,8 +500,7 @@ export function ScrollStoryScene() {
         kind: 'transition',
         lengthVh: 150,
         video: {
-          desktop: '/api/hero-main-video?asset=hero&v=1080',
-          mobile: '/api/hero-main-video?asset=hero&v=720',
+          ...getLandingResponsiveVideoSources('hero'),
           mode: 'scrub',
         },
       },
@@ -507,8 +509,7 @@ export function ScrollStoryScene() {
         kind: 'content',
         lengthVh: 160,
         video: {
-          desktop: '/api/hero-main-video?asset=hero&v=1080',
-          mobile: '/api/hero-main-video?asset=hero&v=720',
+          ...getLandingResponsiveVideoSources('hero'),
           mode: 'hold',
         },
         render: (localProgress) => (
@@ -591,6 +592,27 @@ export function ScrollStoryScene() {
 
     return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata)
   }, [videoSrc])
+
+  useEffect(() => {
+    if (hasReportedInitialMediaReadyRef.current || !onInitialMediaReady) return
+
+    const video = videoRef.current
+    if (!video || !videoSrc) return
+
+    const handleLoadedData = () => {
+      if (hasReportedInitialMediaReadyRef.current) return
+      hasReportedInitialMediaReadyRef.current = true
+      onInitialMediaReady()
+    }
+
+    video.addEventListener('loadeddata', handleLoadedData)
+
+    if (video.readyState >= 2) {
+      handleLoadedData()
+    }
+
+    return () => video.removeEventListener('loadeddata', handleLoadedData)
+  }, [onInitialMediaReady, videoSrc])
 
   useEffect(() => {
     const video = videoRef.current

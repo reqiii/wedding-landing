@@ -1,11 +1,5 @@
-import { ScrollIndicators } from '@/components/ScrollIndicators'
-import { ScrollStoryScene } from '@/components/sections/ScrollStoryScene'
+import { HomepageExperience } from '@/components/homepage/HomepageExperience'
 
 export default function Home() {
-  return (
-    <main className="min-h-screen">
-      <ScrollIndicators />
-      <ScrollStoryScene />
-    </main>
-  )
+  return <HomepageExperience />
 }
