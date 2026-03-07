@@ -91,3 +91,49 @@ export function getLandingPreloadAssets(isMobile: boolean): LandingPreloadAsset[
     },
   ]
 }
+
+export function getCriticalLandingPreloadAssets(isMobile: boolean): LandingPreloadAsset[] {
+  return [
+    {
+      id: 'logo',
+      kind: 'image',
+      src: LANDING_LOGO_SRC,
+      label: 'Логотип',
+    },
+    {
+      id: 'samet',
+      kind: 'video',
+      src: getLandingVideoSource('samet', isMobile),
+      label: 'Приветственный ролик',
+    },
+    {
+      id: 'section1',
+      kind: 'video',
+      src: getLandingVideoSource('section1', isMobile),
+      label: 'История',
+    },
+  ]
+}
+
+export function getBackgroundLandingPreloadAssets(isMobile: boolean): LandingPreloadAsset[] {
+  return [
+    {
+      id: 'section2',
+      kind: 'video',
+      src: getLandingVideoSource('section2', isMobile),
+      label: 'Главная информация',
+    },
+    {
+      id: 'sun',
+      kind: 'video',
+      src: getLandingVideoSource('sun', isMobile),
+      label: 'Локация',
+    },
+    {
+      id: 'hero',
+      kind: 'video',
+      src: getLandingVideoSource('hero', isMobile),
+      label: 'Финальный ролик',
+    },
+  ]
+}

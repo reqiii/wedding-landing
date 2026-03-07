@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Glass } from '@/components/ui/Glass'
 import { RSVPForm } from '@/components/forms/RSVPForm'
 import { cn } from '@/lib/utils'
@@ -32,6 +32,7 @@ type Segment = {
 
 type ScrollStorySceneProps = {
   onInitialMediaReady?: () => void
+  sourceOverrides?: Record<string, string>
 }
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
@@ -191,7 +192,7 @@ const PushUpPanel = ({ progress, reducedMotion, className, render }: PushUpPanel
   )
 }
 
-export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps) {
+export function ScrollStoryScene({ onInitialMediaReady, sourceOverrides }: ScrollStorySceneProps) {
   const sectionRef = useRef<HTMLElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const rafRef = useRef<number | null>(null)
@@ -215,6 +216,7 @@ export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps)
   const [previousVideoSrc, setPreviousVideoSrc] = useState<string | null>(null)
   const lastVideoSrcRef = useRef<string | null>(null)
   const hasReportedInitialMediaReadyRef = useRef(false)
+  const resolveSource = useCallback((src: string) => sourceOverrides?.[src] ?? src, [sourceOverrides])
 
   const segments = useMemo<Segment[]>(
     () => [
@@ -223,8 +225,8 @@ export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps)
         kind: 'content',
         lengthVh: 100,
         video: {
-          desktop: getLandingVideoSource('samet', false),
-          mobile: getLandingVideoSource('samet', true),
+          desktop: resolveSource(getLandingVideoSource('samet', false)),
+          mobile: resolveSource(getLandingVideoSource('samet', true)),
           mode: 'loop',
         },
         render: () => (
@@ -236,7 +238,7 @@ export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps)
           >
             <div className="flex justify-center">
               <Image
-                src={LANDING_LOGO_SRC}
+                src={resolveSource(LANDING_LOGO_SRC)}
                 alt="Логотип"
                 width={500}
                 height={197}
@@ -254,7 +256,8 @@ export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps)
         kind: 'transition',
         lengthVh: 150,
         video: {
-          ...getLandingResponsiveVideoSources('section1'),
+          desktop: resolveSource(getLandingResponsiveVideoSources('section1').desktop),
+          mobile: resolveSource(getLandingResponsiveVideoSources('section1').mobile),
           mode: 'scrub',
         },
       },
@@ -263,7 +266,8 @@ export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps)
         kind: 'content',
         lengthVh: 160,
         video: {
-          ...getLandingResponsiveVideoSources('section1'),
+          desktop: resolveSource(getLandingResponsiveVideoSources('section1').desktop),
+          mobile: resolveSource(getLandingResponsiveVideoSources('section1').mobile),
           mode: 'hold',
         },
         render: (localProgress) => (
@@ -532,7 +536,7 @@ export function ScrollStoryScene({ onInitialMediaReady }: ScrollStorySceneProps)
         ),
       },
     ],
-    [reducedMotion]
+    [reducedMotion, resolveSource]
   )
 
   const segmentsWithRange = useMemo(() => {

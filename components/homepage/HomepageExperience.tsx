@@ -1,10 +1,14 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ScrollIndicators } from '@/components/ScrollIndicators'
 import { HomepagePreloader } from '@/components/homepage/HomepagePreloader'
 import { ScrollStoryScene } from '@/components/sections/ScrollStoryScene'
-import { getLandingPreloadAssets, type LandingPreloadAsset } from '@/lib/landingMedia'
+import {
+  getBackgroundLandingPreloadAssets,
+  getCriticalLandingPreloadAssets,
+  type LandingPreloadAsset,
+} from '@/lib/landingMedia'
 
 const IMAGE_TIMEOUT_MS = 15000
 const VIDEO_TIMEOUT_MS = 45000
@@ -15,6 +19,12 @@ type AssetLoadResult = {
   asset: LandingPreloadAsset
   status: 'loaded' | 'error' | 'timeout'
 }
+
+type StrictAssetLoadResult = AssetLoadResult & {
+  resolvedSrc?: string
+}
+
+type AssetSourceOverrides = Record<string, string>
 
 function preloadImage(asset: LandingPreloadAsset): Promise<AssetLoadResult> {
   return new Promise((resolve) => {
@@ -88,14 +98,50 @@ function preloadAsset(asset: LandingPreloadAsset) {
   return asset.kind === 'image' ? preloadImage(asset) : preloadVideo(asset)
 }
 
+async function strictPreloadAsset(asset: LandingPreloadAsset): Promise<StrictAssetLoadResult> {
+  if (asset.kind === 'image') {
+    return preloadImage(asset)
+  }
+
+  const controller = new AbortController()
+  const timeoutId = window.setTimeout(() => controller.abort('timeout'), VIDEO_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(asset.src, {
+      signal: controller.signal,
+      cache: 'force-cache',
+    })
+
+    if (!response.ok) {
+      return { asset, status: 'error' }
+    }
+
+    const blob = await response.blob()
+    return {
+      asset,
+      status: 'loaded',
+      resolvedSrc: URL.createObjectURL(blob),
+    }
+  } catch (error) {
+    return {
+      asset,
+      status: error instanceof DOMException && error.name === 'AbortError' ? 'timeout' : 'error',
+    }
+  } finally {
+    window.clearTimeout(timeoutId)
+  }
+}
+
 export function HomepageExperience() {
   const [isMobile, setIsMobile] = useState<boolean | null>(null)
   const [completedAssets, setCompletedAssets] = useState(0)
   const [failedAssets, setFailedAssets] = useState(0)
-  const [preloadComplete, setPreloadComplete] = useState(false)
+  const [criticalPreloadComplete, setCriticalPreloadComplete] = useState(false)
   const [sceneReady, setSceneReady] = useState(false)
   const [isPreloaderExiting, setIsPreloaderExiting] = useState(false)
   const [isPreloaderHidden, setIsPreloaderHidden] = useState(false)
+  const [sourceOverrides, setSourceOverrides] = useState<AssetSourceOverrides>({})
+  const objectUrlsRef = useRef<string[]>([])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -108,8 +154,13 @@ export function HomepageExperience() {
     return () => mediaQuery.removeEventListener('change', update)
   }, [])
 
-  const preloadAssets = useMemo(
-    () => (isMobile === null ? [] : getLandingPreloadAssets(isMobile)),
+  const criticalPreloadAssets = useMemo(
+    () => (isMobile === null ? [] : getCriticalLandingPreloadAssets(isMobile)),
+    [isMobile]
+  )
+
+  const backgroundPreloadAssets = useMemo(
+    () => (isMobile === null ? [] : getBackgroundLandingPreloadAssets(isMobile)),
     [isMobile]
   )
 
@@ -132,15 +183,19 @@ export function HomepageExperience() {
 
     setCompletedAssets(0)
     setFailedAssets(0)
-    setPreloadComplete(false)
+    setCriticalPreloadComplete(false)
     setSceneReady(false)
     setIsPreloaderExiting(false)
     setIsPreloaderHidden(false)
+    setSourceOverrides({})
+
+    objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+    objectUrlsRef.current = []
 
     const run = async () => {
       const results = await Promise.all(
-        preloadAssets.map(async (asset) => {
-          const result = await preloadAsset(asset)
+        criticalPreloadAssets.map(async (asset) => {
+          const result = await strictPreloadAsset(asset)
           resolvedCount += 1
 
           if (!isCancelled) {
@@ -154,17 +209,27 @@ export function HomepageExperience() {
       if (isCancelled) return
 
       const failedCount = results.filter((result) => result.status !== 'loaded').length
+      const nextOverrides: AssetSourceOverrides = {}
+
+      results.forEach((result) => {
+        if (result.status === 'loaded' && result.resolvedSrc) {
+          nextOverrides[result.asset.src] = result.resolvedSrc
+          objectUrlsRef.current.push(result.resolvedSrc)
+        }
+      })
+
       if (failedCount > 0) {
         console.warn(
-          'Homepage preloader finished with incomplete assets:',
+          'Homepage critical preloader finished with incomplete assets:',
           results
             .filter((result) => result.status !== 'loaded')
             .map((result) => `${result.asset.id}:${result.status}`)
         )
       }
 
+      setSourceOverrides(nextOverrides)
       setFailedAssets(failedCount)
-      setPreloadComplete(true)
+      setCriticalPreloadComplete(true)
     }
 
     run()
@@ -172,23 +237,56 @@ export function HomepageExperience() {
     return () => {
       isCancelled = true
     }
-  }, [isMobile, preloadAssets])
+  }, [criticalPreloadAssets, isMobile])
 
   useEffect(() => {
-    if (!preloadComplete || sceneReady) return
+    if (isMobile === null || !criticalPreloadComplete) return
+
+    let isCancelled = false
+
+    const warmRemainingAssets = async () => {
+      const results = await Promise.all(backgroundPreloadAssets.map((asset) => preloadAsset(asset)))
+
+      if (isCancelled) return
+
+      const failed = results.filter((result) => result.status !== 'loaded')
+      if (failed.length > 0) {
+        console.warn(
+          'Homepage background preload finished with incomplete assets:',
+          failed.map((result) => `${result.asset.id}:${result.status}`)
+        )
+      }
+    }
+
+    warmRemainingAssets()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [backgroundPreloadAssets, criticalPreloadComplete, isMobile])
+
+  useEffect(() => {
+    if (!criticalPreloadComplete || sceneReady) return
 
     const fallbackId = window.setTimeout(() => {
       setSceneReady(true)
     }, SCENE_READY_FALLBACK_MS)
 
     return () => window.clearTimeout(fallbackId)
-  }, [preloadComplete, sceneReady])
+  }, [criticalPreloadComplete, sceneReady])
 
   useEffect(() => {
-    if (!preloadComplete || !sceneReady || isPreloaderExiting) return
+    if (!criticalPreloadComplete || !sceneReady || isPreloaderExiting) return
 
     setIsPreloaderExiting(true)
-  }, [preloadComplete, sceneReady, isPreloaderExiting])
+  }, [criticalPreloadComplete, sceneReady, isPreloaderExiting])
+
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url))
+      objectUrlsRef.current = []
+    }
+  }, [])
 
   useEffect(() => {
     if (!isPreloaderExiting || isPreloaderHidden) return
@@ -201,26 +299,29 @@ export function HomepageExperience() {
   }, [isPreloaderExiting, isPreloaderHidden])
 
   const preloaderLabel = useMemo(() => {
-    if (!preloadAssets.length) {
+    if (!criticalPreloadAssets.length) {
       return 'Пожалуйста, подождите, готовим страницу'
     }
 
-    if (!preloadComplete) {
-      return `Пожалуйста, подождите, готовим страницу ${completedAssets}/${preloadAssets.length}`
+    if (!criticalPreloadComplete) {
+      return `Пожалуйста, подождите, готовим первую сцену ${completedAssets}/${criticalPreloadAssets.length}`
     }
 
     if (failedAssets > 0) {
-      return 'Материалы почти готовы, открываем страницу'
+      return 'Открываем страницу, остальное догрузится в фоне'
     }
 
-    return 'Материалы готовы, открываем страницу'
-  }, [completedAssets, failedAssets, preloadAssets.length, preloadComplete])
+    return 'Первая сцена готова, открываем страницу'
+  }, [completedAssets, criticalPreloadAssets.length, criticalPreloadComplete, failedAssets])
 
   return (
     <>
       <main className="min-h-screen">
         <ScrollIndicators />
-        <ScrollStoryScene onInitialMediaReady={() => setSceneReady(true)} />
+        <ScrollStoryScene
+          onInitialMediaReady={() => setSceneReady(true)}
+          sourceOverrides={sourceOverrides}
+        />
       </main>
 
       {!isPreloaderHidden ? (
