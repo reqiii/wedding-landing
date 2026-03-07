@@ -25,8 +25,8 @@ export function ScrollScrubVideoSection({
   children,
   heightVh = 260,
   className = '',
-  videoSrcDesktop = '/api/hero-video?v=1080',
-  videoSrcMobile = '/api/hero-video?v=720',
+  videoSrcDesktop = '/landing-media/videos/hero-1080.mp4',
+  videoSrcMobile = '/landing-media/videos/hero-720.mp4',
   posterSrc,
   videoProgressEnd = 1,
   forceScrub = false,
@@ -37,13 +37,8 @@ export function ScrollScrubVideoSection({
   const sectionRef = useRef<HTMLElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const rafRef = useRef<number | null>(null)
-  const scrubRafRef = useRef<number | null>(null)
-  const progressRef = useRef(0)
   const lastProgressRef = useRef(0)
   const lastActiveRef = useRef(false)
-  const isActiveRef = useRef(false)
-  const durationRef = useRef(0)
-  const isReadyRef = useRef(false)
 
   const [videoSrc, setVideoSrc] = useState(videoSrcDesktop)
   const [progress, setProgress] = useState(0)
@@ -51,7 +46,6 @@ export function ScrollScrubVideoSection({
 
   const playbackPolicy = useLandingPlaybackPolicy({ forceScrub })
   const prefersReducedMotion = playbackPolicy.prefersReducedMotion
-  const allowScrub = playbackPolicy.canScrub
   const resolvedPoster = useMemo(() => posterSrc ?? '', [posterSrc])
 
   useEffect(() => {
@@ -62,41 +56,6 @@ export function ScrollScrubVideoSection({
     mediaQuery.addEventListener('change', update)
     return () => mediaQuery.removeEventListener('change', update)
   }, [videoSrcDesktop, videoSrcMobile])
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    const handleLoadedMetadata = () => {
-      durationRef.current = Number.isFinite(video.duration) ? video.duration : 0
-      isReadyRef.current = true
-      if (allowScrub) {
-        video.pause()
-        video.currentTime = 0
-      }
-    }
-
-    video.addEventListener('loadedmetadata', handleLoadedMetadata)
-    if (video.readyState >= 1) {
-      handleLoadedMetadata()
-    }
-    return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata)
-  }, [allowScrub, videoSrc])
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-
-    if (!allowScrub) {
-      video.pause()
-      if (isReadyRef.current && durationRef.current > 0) {
-        video.currentTime = 0
-      }
-      return
-    }
-
-    video.pause()
-  }, [allowScrub, videoSrc])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -113,7 +72,6 @@ export function ScrollScrubVideoSection({
       const progressRaw = (startPx - rect.top) / total
       const scrollProgress = clamp(progressRaw, 0, 1)
       const nextActive = progressRaw >= 0 && progressRaw <= 1
-      progressRef.current = scrollProgress
 
       if (Math.abs(scrollProgress - lastProgressRef.current) > 0.001) {
         lastProgressRef.current = scrollProgress
@@ -121,10 +79,7 @@ export function ScrollScrubVideoSection({
       }
       if (nextActive !== lastActiveRef.current) {
         lastActiveRef.current = nextActive
-        isActiveRef.current = nextActive
         setIsActive(nextActive)
-      } else {
-        isActiveRef.current = nextActive
       }
     }
 
@@ -150,38 +105,19 @@ export function ScrollScrubVideoSection({
     const video = videoRef.current
     if (!video) return
 
-    if (!allowScrub) {
-      if (scrubRafRef.current) {
-        window.cancelAnimationFrame(scrubRafRef.current)
-        scrubRafRef.current = null
-      }
+    if (prefersReducedMotion) {
+      video.pause()
       return
     }
 
-    let isMounted = true
-    const tick = () => {
-      if (!isMounted) return
-      if (!isActiveRef.current || !isReadyRef.current || durationRef.current === 0) {
-        scrubRafRef.current = window.requestAnimationFrame(tick)
-        return
-      }
-      const normalizedVideoProgress = clamp(progressRef.current / videoProgressEnd, 0, 1)
-      const targetTime = normalizedVideoProgress * durationRef.current
-      if (Math.abs(video.currentTime - targetTime) > 0.02) {
-        video.currentTime = targetTime
-      }
-      scrubRafRef.current = window.requestAnimationFrame(tick)
+    video.loop = videoProgressEnd >= 1
+    if (isActive) {
+      const playPromise = video.play()
+      playPromise?.catch(() => undefined)
+    } else {
+      video.pause()
     }
-
-    scrubRafRef.current = window.requestAnimationFrame(tick)
-    return () => {
-      isMounted = false
-      if (scrubRafRef.current) {
-        window.cancelAnimationFrame(scrubRafRef.current)
-        scrubRafRef.current = null
-      }
-    }
-  }, [allowScrub, videoProgressEnd])
+  }, [isActive, prefersReducedMotion, videoProgressEnd, videoSrc])
 
   return (
     <section

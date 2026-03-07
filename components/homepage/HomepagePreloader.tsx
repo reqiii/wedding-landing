@@ -1,5 +1,6 @@
 'use client'
 
+import { useOptionalLandingRuntime } from '@/components/homepage/LandingRuntimeProvider'
 import styles from './HomepagePreloader.module.css'
 
 type HomepagePreloaderProps = {
@@ -11,9 +12,14 @@ export function HomepagePreloader({
   isExiting = false,
   label = 'Пожалуйста, подождите, готовим страницу',
 }: HomepagePreloaderProps) {
+  const runtime = useOptionalLandingRuntime()
+  const simplified = runtime ? !runtime.policy.allowAmbientPreloader : false
+
   return (
     <div
-      className={`${styles.preloader} ${isExiting ? styles.isOutro : ''}`}
+      className={`${styles.preloader} ${isExiting ? styles.isOutro : ''} ${
+        simplified ? styles.isSimplified : ''
+      }`}
       role="status"
       aria-live="polite"
       aria-busy={!isExiting}

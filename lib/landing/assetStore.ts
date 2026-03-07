@@ -2,14 +2,13 @@ import {
   getLandingAssetDefinition,
   getLandingAssetSource,
   getLandingPosterSource,
-  type LandingAssetDefinition,
   type LandingAssetId,
   type LandingAssetKind,
   type LandingDeviceProfile,
 } from '@/lib/landing/mediaManifest'
 
 export type LandingAssetLoadStatus = 'idle' | 'loading' | 'ready' | 'failed'
-export type LandingAssetLoadStrategy = 'strict' | 'strict-native' | 'background'
+export type LandingAssetLoadStrategy = 'critical' | 'metadata' | 'background'
 export type LandingAssetFailureReason = 'timeout' | 'error'
 
 export type LandingAssetState = {
@@ -20,7 +19,6 @@ export type LandingAssetState = {
   posterSrc?: string
   status: LandingAssetLoadStatus
   strategy?: LandingAssetLoadStrategy
-  resolvedSrc?: string
   failureReason?: LandingAssetFailureReason
 }
 
@@ -28,7 +26,6 @@ export type LandingAssetStateMap = Record<LandingAssetId, LandingAssetState>
 
 export type LandingAssetLoadResult = {
   status: Exclude<LandingAssetLoadStatus, 'idle' | 'loading'>
-  resolvedSrc?: string
   failureReason?: LandingAssetFailureReason
 }
 
@@ -63,7 +60,7 @@ function createAssetState(
   }
 }
 
-function preloadImage(definition: LandingAssetDefinition, src: string): Promise<LandingAssetLoadResult> {
+function preloadImage(src: string): Promise<LandingAssetLoadResult> {
   return new Promise((resolve) => {
     const image = new window.Image()
     let settled = false
@@ -93,7 +90,7 @@ function preloadImage(definition: LandingAssetDefinition, src: string): Promise<
   })
 }
 
-function preloadVideoBackground(src: string): Promise<LandingAssetLoadResult> {
+function preloadVideo(src: string, readiness: 'metadata' | 'data'): Promise<LandingAssetLoadResult> {
   return new Promise((resolve) => {
     const video = document.createElement('video')
     let settled = false
@@ -102,8 +99,8 @@ function preloadVideoBackground(src: string): Promise<LandingAssetLoadResult> {
       if (settled) return
       settled = true
       window.clearTimeout(timeoutId)
-      video.removeEventListener('loadeddata', handleReady)
-      video.removeEventListener('canplaythrough', handleReady)
+      video.removeEventListener(readiness === 'metadata' ? 'loadedmetadata' : 'loadeddata', handleReady)
+      video.removeEventListener('canplay', handleReady)
       video.removeEventListener('error', handleError)
       video.pause()
       video.removeAttribute('src')
@@ -118,85 +115,16 @@ function preloadVideoBackground(src: string): Promise<LandingAssetLoadResult> {
       VIDEO_TIMEOUT_MS
     )
 
-    video.preload = 'auto'
+    video.preload = readiness === 'metadata' ? 'metadata' : 'auto'
     video.muted = true
     video.playsInline = true
-    video.addEventListener('loadeddata', handleReady)
-    video.addEventListener('canplaythrough', handleReady)
+    video.addEventListener(readiness === 'metadata' ? 'loadedmetadata' : 'loadeddata', handleReady)
+    video.addEventListener('canplay', handleReady)
     video.addEventListener('error', handleError)
     video.src = src
     video.load()
 
-    if (video.readyState >= 2) {
-      finish({ status: 'ready' })
-    }
-  })
-}
-
-async function preloadVideoStrict(src: string): Promise<LandingAssetLoadResult> {
-  const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort(), VIDEO_TIMEOUT_MS)
-
-  try {
-    const response = await fetch(src, {
-      signal: controller.signal,
-      cache: 'force-cache',
-    })
-
-    if (!response.ok) {
-      return { status: 'failed', failureReason: 'error' }
-    }
-
-    const blob = await response.blob()
-    return {
-      status: 'ready',
-      resolvedSrc: URL.createObjectURL(blob),
-    }
-  } catch (error) {
-    return {
-      status: 'failed',
-      failureReason: error instanceof DOMException && error.name === 'AbortError' ? 'timeout' : 'error',
-    }
-  } finally {
-    window.clearTimeout(timeoutId)
-  }
-}
-
-function preloadVideoStrictNative(src: string): Promise<LandingAssetLoadResult> {
-  return new Promise((resolve) => {
-    const video = document.createElement('video')
-    let settled = false
-
-    const finish = (result: LandingAssetLoadResult) => {
-      if (settled) return
-      settled = true
-      window.clearTimeout(timeoutId)
-      video.removeEventListener('loadeddata', handleReady)
-      video.removeEventListener('canplaythrough', handleReady)
-      video.removeEventListener('error', handleError)
-      video.pause()
-      video.removeAttribute('src')
-      video.load()
-      resolve(result)
-    }
-
-    const handleReady = () => finish({ status: 'ready' })
-    const handleError = () => finish({ status: 'failed', failureReason: 'error' })
-    const timeoutId = window.setTimeout(
-      () => finish({ status: 'failed', failureReason: 'timeout' }),
-      VIDEO_TIMEOUT_MS
-    )
-
-    video.preload = 'auto'
-    video.muted = true
-    video.playsInline = true
-    video.addEventListener('loadeddata', handleReady)
-    video.addEventListener('canplaythrough', handleReady)
-    video.addEventListener('error', handleError)
-    video.src = src
-    video.load()
-
-    if (video.readyState >= 2) {
+    if (video.readyState >= (readiness === 'metadata' ? 1 : 2)) {
       finish({ status: 'ready' })
     }
   })
@@ -209,18 +137,23 @@ export async function loadLandingAsset(
 ): Promise<LandingAssetLoadResult> {
   const definition = getLandingAssetDefinition(assetId)
   const src = getLandingAssetSource(assetId, deviceProfile)
+  const posterSrc = getLandingPosterSource(assetId, deviceProfile)
 
   if (definition.kind === 'image') {
-    return preloadImage(definition, src)
+    return preloadImage(src)
   }
 
-  if (strategy === 'strict') {
-    return preloadVideoStrict(src)
+  if (strategy === 'critical' && posterSrc) {
+    return preloadImage(posterSrc)
   }
 
-  if (strategy === 'strict-native') {
-    return preloadVideoStrictNative(src)
+  if (strategy === 'critical') {
+    return preloadVideo(src, 'metadata')
   }
 
-  return preloadVideoBackground(src)
+  if (strategy === 'metadata') {
+    return preloadVideo(src, 'metadata')
+  }
+
+  return preloadVideo(src, 'data')
 }

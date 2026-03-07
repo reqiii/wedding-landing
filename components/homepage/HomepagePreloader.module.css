@@ -43,6 +43,25 @@
     visibility 0s linear var(--outro-duration);
 }
 
+.isSimplified::before,
+.isSimplified::after,
+.isSimplified .logoGlow,
+.isSimplified .logoShimmer,
+.isSimplified .label {
+  animation: none !important;
+}
+
+.isSimplified::before,
+.isSimplified::after {
+  filter: none;
+  opacity: 0.35;
+}
+
+.isSimplified .logoGlow,
+.isSimplified .logoShimmer {
+  display: none;
+}
+
 .preloader::before,
 .preloader::after {
   content: '';
@@ -113,11 +132,11 @@
   background-position: center;
   background-size: contain;
   pointer-events: none;
-  -webkit-mask-image: url('/api/preloader?asset=logo');
+  -webkit-mask-image: url('/landing-media/logo/logo.svg');
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
-  mask-image: url('/api/preloader?asset=logo');
+  mask-image: url('/landing-media/logo/logo.svg');
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
@@ -295,7 +314,7 @@
   }
 }
 
-@supports not ((-webkit-mask-image: url('/api/preloader?asset=logo')) or (mask-image: url('/api/preloader?asset=logo'))) {
+@supports not ((-webkit-mask-image: url('/landing-media/logo/logo.svg')) or (mask-image: url('/landing-media/logo/logo.svg'))) {
   .logoGlow,
   .logoShimmer {
     display: none;

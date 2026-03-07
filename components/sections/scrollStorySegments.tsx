@@ -1,9 +1,10 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { RSVPForm } from '@/components/forms/RSVPForm'
 import { Glass } from '@/components/ui/Glass'
+import styles from '@/components/sections/ScrollStoryScene.module.css'
 import type {
   LandingAssetId,
   LandingPlaybackMode,
@@ -23,113 +24,58 @@ export type ScrollStorySegment = {
   assetId?: LandingAssetId
   playbackMode?: LandingPlaybackMode
   backgroundColor?: string
-  render?: (
-    progress: number,
-    reducedMotion: boolean,
-    helpers: SegmentRenderHelpers
-  ) => JSX.Element
-  overlay?: (progress: number) => JSX.Element | null
+  render?: (reducedMotion: boolean, helpers: SegmentRenderHelpers) => JSX.Element
+  overlay?: () => JSX.Element | null
 }
 
-const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value))
-const lerp = (from: number, to: number, t: number) => from + (to - from) * t
-
 type ScenePanelProps = {
-  progress: number
-  reducedMotion: boolean
+  segmentId: LandingSegmentId
   className?: string
   alwaysVisible?: boolean
   children: React.ReactNode
 }
 
 const ScenePanel = ({
-  progress,
-  reducedMotion,
+  segmentId,
   className,
   alwaysVisible = false,
   children,
 }: ScenePanelProps) => {
-  const motionProgress = reducedMotion ? 1 : progress
-
-  if (reducedMotion || alwaysVisible) {
-    return <div className={`mx-auto w-full max-w-4xl ${className ?? ''}`}>{children}</div>
-  }
-
-  const appearStart = 0.25
-  const appearEnd = 0.45
-  const holdEnd = 0.9
-  const exitEnd = 1.0
-
-  const appearProgress = clamp((motionProgress - appearStart) / (appearEnd - appearStart))
-  const exitProgress = clamp((motionProgress - holdEnd) / (exitEnd - holdEnd))
-
-  let opacity = 1
-  let translateY = lerp(48, 0, appearProgress)
-
-  if (motionProgress >= holdEnd) {
-    opacity = 1 - exitProgress
-    translateY = lerp(0, -28, exitProgress)
-  }
-
-  const isVisible = motionProgress >= appearStart
-
   return (
     <div
-      className={`mx-auto w-full max-w-4xl ${className ?? ''}`}
-      style={{
-        opacity: isVisible ? opacity : 0,
-        transform: `translate3d(0, ${translateY}px, 0)`,
-        visibility: isVisible ? 'visible' : 'hidden',
-      }}
+      data-segment={segmentId}
+      data-always-visible={alwaysVisible ? 'true' : 'false'}
+      className={`${styles.segmentPanel} mx-auto w-full max-w-4xl ${className ?? ''}`}
+      style={
+        {
+          '--segment-progress': `var(--segment-progress-${segmentId}, 0)`,
+        } as CSSProperties
+      }
     >
       {children}
     </div>
   )
 }
 
-type TextStyleBuilder = (index: number) => React.CSSProperties
-
 type PushUpPanelProps = {
-  progress: number
-  reducedMotion: boolean
+  segmentId: LandingSegmentId
   className?: string
-  render: (textStyle: TextStyleBuilder) => JSX.Element
+  render: (textClassName: (index: number) => string) => JSX.Element
 }
 
-const PushUpPanel = ({ progress, reducedMotion, className, render }: PushUpPanelProps) => {
-  const resolvedProgress = reducedMotion ? 1 : progress
-  const moveEnd = 0.35
-  const expandEnd = 0.4
-  const textStart = moveEnd + 0.08
-  const textDuration = 0.14
-  const moveProgress = clamp(resolvedProgress / moveEnd)
-  const expandProgress = clamp((resolvedProgress - 0.05) / (expandEnd - 0.05))
-  const textProgress = clamp((resolvedProgress - textStart) / textDuration)
-
-  const translateY = lerp(110, 0, moveProgress)
-  const scaleY = lerp(0.78, 1, expandProgress)
-
-  const buildTextStyle = (index: number) => {
-    const staggerStart = index * 0.12
-    const localText = clamp((textProgress - staggerStart) / 0.7)
-    const opacity = clamp(localText * 1.4)
-    return {
-      opacity,
-      transform: `translate3d(0, ${lerp(16, 0, localText)}px, 0)`,
-      transition: 'none',
-    }
-  }
-
+const PushUpPanel = ({ segmentId, className, render }: PushUpPanelProps) => {
   return (
-    <div className={`mx-auto w-full max-w-4xl ${className ?? ''}`}>
-      <div
-        style={{
-          transform: `translate3d(0, ${translateY}vh, 0) scaleY(${scaleY})`,
-          transformOrigin: 'bottom center',
-          willChange: 'transform',
-        }}
-      >
-        {render(buildTextStyle)}
+    <div
+      data-segment={segmentId}
+      className={`${styles.segmentPanel} mx-auto w-full max-w-4xl ${className ?? ''}`}
+      style={
+        {
+          '--segment-progress': `var(--segment-progress-${segmentId}, 0)`,
+        } as CSSProperties
+      }
+    >
+      <div className={styles.pushPanel}>
+        {render((index) => styles[`segmentText${index}` as keyof typeof styles] ?? styles.segmentText)}
       </div>
     </div>
   )
@@ -203,10 +149,9 @@ export function createScrollStorySegments(
       lengthVh: 100,
       assetId: 'samet',
       playbackMode: 'loop',
-      render: (_progress, reducedMotion) => (
+      render: () => (
         <ScenePanel
-          progress={1}
-          reducedMotion={reducedMotion}
+          segmentId="section-1"
           alwaysVisible
           className="max-w-none"
         >
@@ -238,19 +183,18 @@ export function createScrollStorySegments(
       lengthVh: 160,
       assetId: 'section1',
       playbackMode: 'hold',
-      render: (localProgress, reducedMotion) => (
+      render: () => (
         <PushUpPanel
-          progress={localProgress}
-          reducedMotion={reducedMotion}
-          render={(textStyle) => (
+          segmentId="section-2"
+          render={(textClassName) => (
             <Glass variant="panel">
               <div className="text-center space-y-6">
-                <div style={textStyle(0)}>
+                <div className={textClassName(0)}>
                   <h2 className="font-display text-3xl text-dark-gray md:text-4xl">
                     История и приглашение
                   </h2>
                 </div>
-                <div style={textStyle(1)} className="space-y-4 text-lg leading-relaxed text-medium-gray">
+                <div className={`${textClassName(1)} space-y-4 text-lg leading-relaxed text-medium-gray`}>
                   <p>
                     Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей
                     истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов.
@@ -279,22 +223,18 @@ export function createScrollStorySegments(
       lengthVh: 170,
       assetId: 'section2',
       playbackMode: 'hold',
-      render: (localProgress, reducedMotion) => (
+      render: () => (
         <PushUpPanel
-          progress={localProgress}
-          reducedMotion={reducedMotion}
-          render={(textStyle) => (
+          segmentId="section-3"
+          render={(textClassName) => (
             <Glass variant="panel">
               <div className="space-y-8">
-                <div style={textStyle(0)}>
+                <div className={textClassName(0)}>
                   <h2 className="font-display text-center text-3xl text-dark-gray md:text-4xl">
                     Главная информация
                   </h2>
                 </div>
-                <div
-                  style={textStyle(1)}
-                  className="grid grid-cols-1 gap-6 text-medium-gray md:grid-cols-2"
-                >
+                <div className={`${textClassName(1)} grid grid-cols-1 gap-6 text-medium-gray md:grid-cols-2`}>
                   <div className="space-y-3">
                     <h3 className="font-display text-2xl text-dark-gray">Тайминг</h3>
                     <div className="space-y-2">
@@ -371,22 +311,18 @@ export function createScrollStorySegments(
       lengthVh: 160,
       assetId: 'sun',
       playbackMode: 'hold',
-      render: (localProgress, reducedMotion) => (
+      render: () => (
         <PushUpPanel
-          progress={localProgress}
-          reducedMotion={reducedMotion}
-          render={(textStyle) => (
+          segmentId="section-4"
+          render={(textClassName) => (
             <Glass variant="panel">
               <div className="space-y-6">
-                <div style={textStyle(0)}>
+                <div className={textClassName(0)}>
                   <h2 className="font-display text-center text-3xl text-dark-gray md:text-4xl">
                     Локация и трансфер
                   </h2>
                 </div>
-                <div
-                  style={textStyle(1)}
-                  className="space-y-4 text-lg leading-relaxed text-medium-gray"
-                >
+                <div className={`${textClassName(1)} space-y-4 text-lg leading-relaxed text-medium-gray`}>
                   <div>
                     <h3 className="mb-2 font-display text-2xl text-dark-gray">Локация</h3>
                     <p>Загородная усадьба «Белый сад»</p>
@@ -421,8 +357,15 @@ export function createScrollStorySegments(
       lengthVh: 110,
       assetId: 'sun',
       playbackMode: 'hold',
-      overlay: (localProgress) => (
-        <div className="absolute inset-0 bg-light-gray" style={{ opacity: clamp(localProgress) }} />
+      overlay: () => (
+        <div
+          className={styles.segmentOverlay}
+          style={
+            {
+              '--segment-progress': 'var(--segment-progress-transition-4, 0)',
+            } as CSSProperties
+          }
+        />
       ),
     },
     {
@@ -430,18 +373,17 @@ export function createScrollStorySegments(
       kind: 'content',
       lengthVh: 170,
       backgroundColor: 'bg-light-gray',
-      render: (localProgress, reducedMotion) => (
+      render: () => (
         <PushUpPanel
-          progress={localProgress}
-          reducedMotion={reducedMotion}
-          render={(textStyle) => (
+          segmentId="section-5"
+          render={(textClassName) => (
             <Glass variant="panel">
               <div className="space-y-6">
                 <div className="space-y-2 text-center">
-                  <div style={textStyle(0)}>
+                  <div className={textClassName(0)}>
                     <h2 className="font-display text-3xl text-dark-gray md:text-4xl">Анкета гостя</h2>
                   </div>
-                  <div style={textStyle(1)}>
+                  <div className={textClassName(1)}>
                     <p className="text-lg text-medium-gray">
                       Информация поможет нам при организации торжества.
                       <br />
@@ -469,17 +411,16 @@ export function createScrollStorySegments(
       lengthVh: 160,
       assetId: 'hero',
       playbackMode: 'hold',
-      render: (localProgress, reducedMotion) => (
+      render: () => (
         <PushUpPanel
-          progress={localProgress}
-          reducedMotion={reducedMotion}
-          render={(textStyle) => (
+          segmentId="section-6"
+          render={(textClassName) => (
             <Glass variant="panel">
               <div className="space-y-6 text-center">
-                <div style={textStyle(0)}>
+                <div className={textClassName(0)}>
                   <h2 className="font-display text-3xl text-dark-gray md:text-4xl">Мы вас ждём</h2>
                 </div>
-                <div style={textStyle(1)}>
+                <div className={textClassName(1)}>
                   <Countdown />
                 </div>
               </div>

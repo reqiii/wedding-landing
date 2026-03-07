@@ -9,8 +9,9 @@ export function ScrollIndicators() {
   const rafRef = useRef<number | null>(null)
   const lastProgressRef = useRef(0)
   const lastHintRef = useRef(true)
-  const [progress, setProgress] = useState(0)
-  const [showHint, setShowHint] = useState(true)
+  const desktopProgressRef = useRef<HTMLDivElement | null>(null)
+  const mobileProgressRef = useRef<HTMLDivElement | null>(null)
+  const hintRef = useRef<HTMLDivElement | null>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
@@ -33,11 +34,14 @@ export function ScrollIndicators() {
 
       if (Math.abs(nextProgress - lastProgressRef.current) > 0.001) {
         lastProgressRef.current = nextProgress
-        setProgress(nextProgress)
+        desktopProgressRef.current?.style.setProperty('--scroll-progress-y', String(nextProgress))
+        mobileProgressRef.current?.style.setProperty('--scroll-progress-x', String(nextProgress))
       }
       if (nextHint !== lastHintRef.current) {
         lastHintRef.current = nextHint
-        setShowHint(nextHint)
+        if (hintRef.current) {
+          hintRef.current.dataset.visible = nextHint ? 'true' : 'false'
+        }
       }
     }
 
@@ -65,8 +69,9 @@ export function ScrollIndicators() {
         <div className="flex h-56 w-3 items-center justify-center rounded-full bg-white/35 p-1 backdrop-blur-md shadow-[0_10px_30px_rgba(15,23,42,0.15)]">
           <div className="relative h-full w-full overflow-hidden rounded-full bg-white/40">
             <div
+              ref={desktopProgressRef}
               className="absolute top-0 bottom-0 left-0 right-0 origin-top bg-black shadow-[0_0_10px_rgba(0,0,0,0.35)] transition-transform duration-150 ease-out"
-              style={{ transform: `scaleY(${progress})` }}
+              style={{ transform: 'scaleY(var(--scroll-progress-y, 0))' }}
             />
           </div>
         </div>
@@ -76,8 +81,9 @@ export function ScrollIndicators() {
         <div className="flex h-3 w-full items-center justify-center rounded-full bg-white/35 p-1 backdrop-blur-md shadow-[0_10px_30px_rgba(15,23,42,0.15)]">
           <div className="relative h-full w-full overflow-hidden rounded-full bg-white/40">
             <div
+              ref={mobileProgressRef}
               className="absolute left-0 right-0 top-0 bottom-0 origin-left bg-black shadow-[0_0_10px_rgba(0,0,0,0.35)] transition-transform duration-150 ease-out"
-              style={{ transform: `scaleX(${progress})` }}
+              style={{ transform: 'scaleX(var(--scroll-progress-x, 0))' }}
             />
           </div>
         </div>
@@ -85,9 +91,9 @@ export function ScrollIndicators() {
 
       <div className="pointer-events-none fixed inset-x-0 bottom-10 z-50 flex justify-center">
         <div
-          className={`relative text-dark-gray transition-all duration-300 ${
-            showHint ? 'opacity-70 translate-y-0' : 'opacity-0 translate-y-2'
-          }`}
+          ref={hintRef}
+          data-visible="true"
+          className="relative text-dark-gray transition-all duration-300 data-[visible=false]:translate-y-2 data-[visible=false]:opacity-0 data-[visible=true]:translate-y-0 data-[visible=true]:opacity-70"
           aria-hidden="true"
         >
           {!reducedMotion && (

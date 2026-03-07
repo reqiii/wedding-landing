@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { useLandingRuntime } from '@/components/homepage/LandingRuntimeProvider'
 import type { LandingDeviceProfile } from '@/lib/landing/mediaManifest'
 
 type UseLandingPlaybackPolicyOptions = {
@@ -9,61 +10,33 @@ type UseLandingPlaybackPolicyOptions = {
 
 export function useLandingPlaybackPolicy(options: UseLandingPlaybackPolicyOptions = {}) {
   const { forceScrub = false } = options
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-  const [isMobileSafari, setIsMobileSafari] = useState(false)
-  const [deviceProfile, setDeviceProfile] = useState<LandingDeviceProfile | null>(null)
+  const { policy, snapshot, telemetry, debugEnabled, reportScrollFrame, reportVideoDecodeLag } =
+    useLandingRuntime()
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => setPrefersReducedMotion(mediaQuery.matches)
-    update()
-    mediaQuery.addEventListener('change', update)
-    return () => mediaQuery.removeEventListener('change', update)
-  }, [])
+  const canScrub = useMemo(
+    () => (forceScrub ? true : policy.allowVideoScrub),
+    [forceScrub, policy.allowVideoScrub]
+  )
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const mediaQuery = window.matchMedia('(max-width: 768px)')
-    const update = () => setDeviceProfile(mediaQuery.matches ? 'mobile' : 'desktop')
-    update()
-    mediaQuery.addEventListener('change', update)
-    return () => mediaQuery.removeEventListener('change', update)
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const ua = window.navigator.userAgent
-    const isIOS = /iP(ad|hone|od)/.test(ua)
-    const isWebkit = /WebKit/.test(ua)
-    const isCriOS = /CriOS/.test(ua)
-    const isFxiOS = /FxiOS/.test(ua)
-    setIsMobileSafari(isIOS && isWebkit && !isCriOS && !isFxiOS)
-  }, [])
-
-  const canScrub = useMemo(() => {
-    if (forceScrub) {
-      return true
-    }
-
-    if (prefersReducedMotion || isMobileSafari) {
-      return false
-    }
-
-    return true
-  }, [forceScrub, isMobileSafari, prefersReducedMotion])
-
-  const fallbackBehavior = prefersReducedMotion ? 'poster' : isMobileSafari ? 'freeze' : 'none'
-  const preferSimpleTransitions = prefersReducedMotion || isMobileSafari
-  const shouldUseBufferedVideoSwap = isMobileSafari
+  const deviceProfile = policy.mediaProfile as LandingDeviceProfile
+  const fallbackBehavior = policy.preferPosters ? 'poster' : 'freeze'
+  const preferSimpleTransitions =
+    !policy.allowDualVideoLayers || !policy.allowVideoBlurTransitions || policy.preferPosters
+  const shouldUseBufferedVideoSwap = policy.allowDualVideoLayers
 
   return {
     deviceProfile,
-    prefersReducedMotion,
-    isMobileSafari,
+    capabilityProfile: snapshot.profile,
+    policy,
+    telemetry,
+    debugEnabled,
+    prefersReducedMotion: policy.prefersReducedMotion,
+    isMobileSafari: policy.isMobileSafari,
     canScrub,
     fallbackBehavior,
     preferSimpleTransitions,
     shouldUseBufferedVideoSwap,
+    reportScrollFrame,
+    reportVideoDecodeLag,
   }
 }

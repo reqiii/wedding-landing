@@ -1,0 +1,158 @@
+.sceneRoot {
+  --scene-progress: 0;
+  --scene-active: 0;
+  position: relative;
+}
+
+.stickyStage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease-out, visibility 0s linear 180ms;
+}
+
+.sceneRoot[data-scene-active='true'] .stickyStage {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.mediaStage {
+  position: absolute;
+  inset: 0;
+  background: #000;
+}
+
+.mediaVideo,
+.posterFallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.mediaVideo {
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 280ms ease-out;
+  background: #000;
+}
+
+.mediaVideo[data-visible='true'] {
+  opacity: 1;
+}
+
+.posterFallback {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.contentStage {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.sceneRoot[data-active-segment='section-1'] .contentStage {
+  align-items: flex-start;
+  padding-top: min(8vh, 3rem);
+}
+
+.segmentPanel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.segmentPanel[data-always-visible='true'] {
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: min(8vh, 3rem);
+}
+
+.sceneRoot[data-active-segment='section-1'] .segmentPanel[data-segment='section-1'],
+.sceneRoot[data-active-segment='section-2'] .segmentPanel[data-segment='section-2'],
+.sceneRoot[data-active-segment='section-3'] .segmentPanel[data-segment='section-3'],
+.sceneRoot[data-active-segment='section-4'] .segmentPanel[data-segment='section-4'],
+.sceneRoot[data-active-segment='section-5'] .segmentPanel[data-segment='section-5'],
+.sceneRoot[data-active-segment='section-6'] .segmentPanel[data-segment='section-6'] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.pushPanel {
+  width: 100%;
+  --push-move-progress: max(0, min(1, calc(var(--segment-progress, 0) / 0.35)));
+  --push-expand-progress: max(0, min(1, calc((var(--segment-progress, 0) - 0.05) / 0.35)));
+  transform: translate3d(0, calc((1 - var(--push-move-progress)) * 18vh), 0)
+    scaleY(calc(0.78 + (var(--push-expand-progress) * 0.22)));
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.segmentText,
+.segmentText0,
+.segmentText1,
+.segmentText2 {
+  --segment-text-start: 0.35;
+  --segment-text-progress: max(
+    0,
+    min(1, calc((var(--segment-progress, 0) - var(--segment-text-start)) / 0.28))
+  );
+  opacity: var(--segment-text-progress);
+  transform: translate3d(0, calc((1 - var(--segment-text-progress)) * 16px), 0);
+}
+
+.segmentText0 {
+  --segment-text-start: 0.43;
+}
+
+.segmentText1 {
+  --segment-text-start: 0.55;
+}
+
+.segmentText2 {
+  --segment-text-start: 0.67;
+}
+
+.segmentOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(245 243 240);
+  opacity: var(--segment-progress, 0);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stickyStage {
+    transition: none;
+  }
+
+  .pushPanel {
+    transform: none;
+  }
+
+  .segmentText,
+  .segmentText0,
+  .segmentText1,
+  .segmentText2 {
+    opacity: 1;
+    transform: none;
+  }
+}

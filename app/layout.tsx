@@ -37,6 +37,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <head>
+        <link rel="preload" as="image" href="/landing-media/logo/logo.svg" fetchPriority="high" />
+        <link rel="preload" as="image" href="/landing-media/posters/samet.jpg" fetchPriority="high" />
+        <link rel="preload" as="image" href="/landing-media/posters/section1.jpg" fetchPriority="high" />
+      </head>
       <body className="antialiased">
         {/* SVG Filters for Glass Refraction (background-only layers) */}
         <svg className="absolute w-0 h-0" aria-hidden="true">

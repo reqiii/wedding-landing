@@ -20,7 +20,7 @@ type CriticalProgress = {
 }
 
 type UseLandingAssetStoreOptions = {
-  useNativeStrictVideo?: boolean
+  preloadConcurrency?: number
 }
 
 async function runWithConcurrency<T>(
@@ -48,7 +48,7 @@ export function useLandingAssetStore(
   deviceProfile: LandingDeviceProfile | null,
   options: UseLandingAssetStoreOptions = {}
 ) {
-  const { useNativeStrictVideo = false } = options
+  const { preloadConcurrency = 1 } = options
   const [assets, setAssets] = useState<LandingAssetStateMap | null>(null)
   const [criticalProgress, setCriticalProgress] = useState<CriticalProgress>({
     completed: 0,
@@ -57,7 +57,6 @@ export function useLandingAssetStore(
     failed: 0,
   })
   const assetsRef = useRef<LandingAssetStateMap | null>(null)
-  const objectUrlsRef = useRef<Record<LandingAssetId, string>>({} as Record<LandingAssetId, string>)
   const inflightRef = useRef<Partial<Record<LandingAssetId, Promise<LandingAssetLoadResult>>>>({})
 
   useEffect(() => {
@@ -67,8 +66,6 @@ export function useLandingAssetStore(
   useEffect(() => {
     if (!deviceProfile) return
 
-    Object.values(objectUrlsRef.current).forEach((url) => URL.revokeObjectURL(url))
-    objectUrlsRef.current = {} as Record<LandingAssetId, string>
     inflightRef.current = {}
 
     const initialAssets = createLandingAssetStateMap(deviceProfile)
@@ -81,13 +78,6 @@ export function useLandingAssetStore(
       failed: 0,
     })
   }, [deviceProfile])
-
-  useEffect(() => {
-    return () => {
-      Object.values(objectUrlsRef.current).forEach((url) => URL.revokeObjectURL(url))
-      objectUrlsRef.current = {} as Record<LandingAssetId, string>
-    }
-  }, [])
 
   const commitAssetState = useCallback(
     (
@@ -118,7 +108,6 @@ export function useLandingAssetStore(
       if (currentAsset.status === 'ready') {
         return Promise.resolve<LandingAssetLoadResult>({
           status: 'ready',
-          resolvedSrc: currentAsset.resolvedSrc,
         })
       }
 
@@ -140,21 +129,10 @@ export function useLandingAssetStore(
       promise
         .then((result) => {
           commitAssetState(assetId, (asset) => {
-            const previousResolved = objectUrlsRef.current[assetId]
-            if (previousResolved && previousResolved !== result.resolvedSrc) {
-              URL.revokeObjectURL(previousResolved)
-              delete objectUrlsRef.current[assetId]
-            }
-
-            if (result.status === 'ready' && result.resolvedSrc) {
-              objectUrlsRef.current[assetId] = result.resolvedSrc
-            }
-
             return {
               ...asset,
               status: result.status,
               strategy,
-              resolvedSrc: result.status === 'ready' ? result.resolvedSrc ?? asset.resolvedSrc : undefined,
               failureReason: result.failureReason,
             }
           })
@@ -175,13 +153,10 @@ export function useLandingAssetStore(
     let failed = 0
 
     const results: LandingAssetLoadResult[] = new Array(criticalIds.length)
-    const concurrencyLimit = useNativeStrictVideo ? 1 : criticalIds.length
+    const concurrencyLimit = Math.max(1, Math.min(preloadConcurrency, criticalIds.length))
 
     await runWithConcurrency(criticalIds, concurrencyLimit, async (assetId) => {
-      const result = await ensureAsset(
-        assetId,
-        useNativeStrictVideo && assetId !== 'logo' ? 'strict-native' : 'strict'
-      )
+      const result = await ensureAsset(assetId, 'critical')
       const resultIndex = criticalIds.indexOf(assetId)
       results[resultIndex] = result
       completed += 1
@@ -200,18 +175,18 @@ export function useLandingAssetStore(
     })
 
     return results
-  }, [ensureAsset, useNativeStrictVideo])
+  }, [ensureAsset, preloadConcurrency])
 
   const warmAssets = useCallback(
     async (assetIds: LandingAssetId[]) => {
       const uniqueAssetIds = Array.from(new Set(assetIds))
-      const concurrencyLimit = useNativeStrictVideo ? 1 : Math.min(2, uniqueAssetIds.length)
+      const concurrencyLimit = Math.max(1, Math.min(preloadConcurrency, uniqueAssetIds.length))
 
       await runWithConcurrency(uniqueAssetIds, concurrencyLimit, async (assetId) => {
-        await ensureAsset(assetId, 'background')
+        await ensureAsset(assetId, 'metadata')
       })
     },
-    [ensureAsset, useNativeStrictVideo]
+    [ensureAsset, preloadConcurrency]
   )
 
   const criticalReady = useMemo(() => {

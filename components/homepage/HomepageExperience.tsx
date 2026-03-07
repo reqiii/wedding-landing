@@ -1,32 +1,38 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { LandingPerfOverlay } from '@/components/debug/LandingPerfOverlay'
+import { LandingRuntimeProvider } from '@/components/homepage/LandingRuntimeProvider'
 import { ScrollIndicators } from '@/components/ScrollIndicators'
 import { HomepagePreloader } from '@/components/homepage/HomepagePreloader'
 import { useLandingAssetStore } from '@/components/homepage/hooks/useLandingAssetStore'
 import { useLandingPlaybackPolicy } from '@/components/homepage/hooks/useLandingPlaybackPolicy'
 import { useSegmentWarmup } from '@/components/homepage/hooks/useSegmentWarmup'
 import { ScrollStoryScene } from '@/components/sections/ScrollStoryScene'
-import type { LandingSegmentId } from '@/lib/landing/mediaManifest'
+import { getLandingAssetSource, type LandingSegmentId } from '@/lib/landing/mediaManifest'
 import { getBackgroundImmediateLandingAssetIds } from '@/lib/landing/preloadPolicy'
 
-const PRELOADER_OUTRO_MS = 1100
-const DEFAULT_SCENE_READY_FALLBACK_MS = 2500
-const IOS_SCENE_READY_FALLBACK_MS = 4000
+const PRELOADER_OUTRO_MS = 700
+const SCENE_READY_FALLBACK_MS = 1200
 
 export function HomepageExperience() {
-  const { deviceProfile, isMobileSafari } = useLandingPlaybackPolicy()
-  const { assets, criticalProgress, criticalComplete, criticalReady, ensureCritical, warmAssets } =
+  return (
+    <LandingRuntimeProvider heroVideoSrc={getLandingAssetSource('section1', 'desktop')}>
+      <HomepageExperienceContent />
+    </LandingRuntimeProvider>
+  )
+}
+
+function HomepageExperienceContent() {
+  const { deviceProfile, policy } = useLandingPlaybackPolicy()
+  const { assets, criticalProgress, criticalReady, ensureCritical, warmAssets } =
     useLandingAssetStore(deviceProfile, {
-      useNativeStrictVideo: isMobileSafari,
+      preloadConcurrency: policy.preloadConcurrency,
     })
   const [sceneReady, setSceneReady] = useState(false)
   const [isPreloaderExiting, setIsPreloaderExiting] = useState(false)
   const [isPreloaderHidden, setIsPreloaderHidden] = useState(false)
   const [activeSegmentId, setActiveSegmentId] = useState<LandingSegmentId | null>(null)
-  const sceneReadyFallbackMs = isMobileSafari
-    ? IOS_SCENE_READY_FALLBACK_MS
-    : DEFAULT_SCENE_READY_FALLBACK_MS
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -64,16 +70,16 @@ export function HomepageExperience() {
 
     const fallbackId = window.setTimeout(() => {
       setSceneReady(true)
-    }, sceneReadyFallbackMs)
+    }, SCENE_READY_FALLBACK_MS)
 
     return () => window.clearTimeout(fallbackId)
-  }, [criticalReady, sceneReady, sceneReadyFallbackMs])
+  }, [criticalReady, sceneReady])
 
   useEffect(() => {
-    if (!criticalComplete || !sceneReady || isPreloaderExiting) return
+    if (!criticalReady || !sceneReady || isPreloaderExiting) return
 
     setIsPreloaderExiting(true)
-  }, [criticalComplete, sceneReady, isPreloaderExiting])
+  }, [criticalReady, sceneReady, isPreloaderExiting])
 
   useEffect(() => {
     if (!isPreloaderExiting || isPreloaderHidden) return
@@ -90,17 +96,16 @@ export function HomepageExperience() {
       return 'Пожалуйста, подождите, готовим страницу'
     }
 
-    if (!criticalComplete) {
-      return `Пожалуйста, подождите, готовим первую сцену ${criticalProgress.completed}/${criticalProgress.total}`
+    if (!criticalReady) {
+      return `Готовим первый экран ${criticalProgress.completed}/${criticalProgress.total}`
     }
 
-    if (!criticalReady || criticalProgress.failed > 0) {
-      return 'Открываем страницу, остальное догрузится в фоне'
+    if (criticalProgress.failed > 0) {
+      return 'Открываем страницу, тяжелое медиа догрузится в фоне'
     }
 
-    return 'Первая сцена готова, открываем страницу'
+    return 'Первый экран готов, открываем страницу'
   }, [
-    criticalComplete,
     criticalProgress.completed,
     criticalProgress.failed,
     criticalProgress.total,
@@ -110,7 +115,7 @@ export function HomepageExperience() {
   return (
     <>
       <main className="min-h-screen">
-        <ScrollIndicators />
+        {!policy.simplifiedIndicators ? <ScrollIndicators /> : null}
         {assets ? (
           <ScrollStoryScene
             assets={assets}
@@ -119,6 +124,7 @@ export function HomepageExperience() {
           />
         ) : null}
       </main>
+      <LandingPerfOverlay />
 
       {!isPreloaderHidden ? (
         <HomepagePreloader isExiting={isPreloaderExiting} label={preloaderLabel} />

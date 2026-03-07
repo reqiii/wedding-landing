@@ -23,14 +23,19 @@ export type LandingAssetDefinition = {
   posterSources?: Partial<Record<LandingDeviceProfile, string>>
 }
 
+const LANDING_MEDIA_BASE_PATH =
+  process.env.NEXT_PUBLIC_LANDING_MEDIA_BASE_PATH?.replace(/\/$/, '') || '/landing-media'
+
+const withMediaBase = (path: string) => `${LANDING_MEDIA_BASE_PATH}${path}`
+
 export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefinition> = {
   logo: {
     id: 'logo',
     kind: 'image',
     label: 'Логотип',
     sources: {
-      desktop: '/api/preloader?asset=logo',
-      mobile: '/api/preloader?asset=logo',
+      desktop: withMediaBase('/logo/logo.svg'),
+      mobile: withMediaBase('/logo/logo.svg'),
     },
   },
   samet: {
@@ -38,12 +43,12 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
     kind: 'video',
     label: 'Приветственный ролик',
     sources: {
-      desktop: '/api/hero-video?asset=samet',
-      mobile: '/api/hero-video?asset=samet',
+      desktop: withMediaBase('/videos/samet.mp4'),
+      mobile: withMediaBase('/videos/samet.mp4'),
     },
     posterSources: {
-      desktop: '/api/hero-video?asset=samet&poster=1',
-      mobile: '/api/hero-video?asset=samet&poster=1',
+      desktop: withMediaBase('/posters/samet.jpg'),
+      mobile: withMediaBase('/posters/samet.jpg'),
     },
   },
   section1: {
@@ -51,12 +56,12 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
     kind: 'video',
     label: 'История',
     sources: {
-      desktop: '/api/hero-main-video?asset=section1&v=1080',
-      mobile: '/api/hero-main-video?asset=section1&v=720',
+      desktop: withMediaBase('/videos/section1-1080.mp4'),
+      mobile: withMediaBase('/videos/section1-720.mp4'),
     },
     posterSources: {
-      desktop: '/api/hero-main-video?asset=section1&poster=1',
-      mobile: '/api/hero-main-video?asset=section1&poster=1',
+      desktop: withMediaBase('/posters/section1.jpg'),
+      mobile: withMediaBase('/posters/section1.jpg'),
     },
   },
   section2: {
@@ -64,12 +69,12 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
     kind: 'video',
     label: 'Главная информация',
     sources: {
-      desktop: '/api/hero-main-video?asset=section2&v=1080',
-      mobile: '/api/hero-main-video?asset=section2&v=720',
+      desktop: withMediaBase('/videos/section2-1080.mp4'),
+      mobile: withMediaBase('/videos/section2-720.mp4'),
     },
     posterSources: {
-      desktop: '/api/hero-main-video?asset=section2&poster=1',
-      mobile: '/api/hero-main-video?asset=section2&poster=1',
+      desktop: withMediaBase('/posters/section2.jpg'),
+      mobile: withMediaBase('/posters/section2.jpg'),
     },
   },
   sun: {
@@ -77,12 +82,12 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
     kind: 'video',
     label: 'Локация',
     sources: {
-      desktop: '/api/hero-main-video?asset=sun&v=1080',
-      mobile: '/api/hero-main-video?asset=sun&v=720',
+      desktop: withMediaBase('/videos/sun-1080.mp4'),
+      mobile: withMediaBase('/videos/sun-720.mp4'),
     },
     posterSources: {
-      desktop: '/api/hero-main-video?asset=sun&poster=1',
-      mobile: '/api/hero-main-video?asset=sun&poster=1',
+      desktop: withMediaBase('/posters/sun.jpg'),
+      mobile: withMediaBase('/posters/sun.jpg'),
     },
   },
   hero: {
@@ -90,12 +95,12 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
     kind: 'video',
     label: 'Финальный ролик',
     sources: {
-      desktop: '/api/hero-main-video?asset=hero&v=1080',
-      mobile: '/api/hero-main-video?asset=hero&v=720',
+      desktop: withMediaBase('/videos/hero-1080.mp4'),
+      mobile: withMediaBase('/videos/hero-720.mp4'),
     },
     posterSources: {
-      desktop: '/api/hero-main-video?asset=hero&poster=1',
-      mobile: '/api/hero-main-video?asset=hero&poster=1',
+      desktop: withMediaBase('/posters/hero.jpg'),
+      mobile: withMediaBase('/posters/hero.jpg'),
     },
   },
 }

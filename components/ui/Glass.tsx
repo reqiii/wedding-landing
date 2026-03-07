@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
+import { useOptionalLandingRuntime } from '@/components/homepage/LandingRuntimeProvider'
 import { cn } from '@/lib/utils'
 
 interface GlassProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -10,24 +11,9 @@ interface GlassProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export function Glass({ variant = 'card', children, className, ...props }: GlassProps) {
-  const [effectsEnabled, setEffectsEnabled] = useState(true)
-
-  useEffect(() => {
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const connection = (navigator as any).connection
-    const saveData = Boolean(connection?.saveData)
-    const slowConnection = ['slow-2g', '2g'].includes(connection?.effectiveType)
-
-    const update = () => {
-      const reduceMotion = motionQuery.matches
-      setEffectsEnabled(!(reduceMotion || saveData || slowConnection))
-    }
-
-    update()
-    motionQuery.addEventListener('change', update)
-
-    return () => motionQuery.removeEventListener('change', update)
-  }, [])
+  const runtime = useOptionalLandingRuntime()
+  const allowGlassDisplacement = runtime?.policy.allowGlassDisplacement ?? true
+  const allowBackdropBlur = runtime?.policy.allowBackdropBlur ?? true
 
   const variantClasses = {
     card: 'glass-card',
@@ -41,7 +27,8 @@ export function Glass({ variant = 'card', children, className, ...props }: Glass
       className={cn(
         'glass-root',
         variantClasses[variant],
-        effectsEnabled ? 'glass-effects-on' : 'glass-effects-off',
+        allowGlassDisplacement ? 'glass-effects-on' : 'glass-effects-off',
+        allowBackdropBlur ? 'glass-blur-on' : 'glass-blur-off',
         'transition-all duration-200 ease-in-out',
         className
       )}
