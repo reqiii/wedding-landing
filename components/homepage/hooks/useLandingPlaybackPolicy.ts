@@ -46,12 +46,16 @@ export function useLandingPlaybackPolicy(options: UseLandingPlaybackPolicyOption
       return true
     }
 
-    // Keep scroll-driven video enabled on mobile when the browser supports it in practice.
-    // Reduced motion remains the only hard stop for scrub behavior.
-    return !prefersReducedMotion
-  }, [forceScrub, prefersReducedMotion])
+    if (prefersReducedMotion || isMobileSafari) {
+      return false
+    }
+
+    return true
+  }, [forceScrub, isMobileSafari, prefersReducedMotion])
 
   const fallbackBehavior = prefersReducedMotion ? 'poster' : isMobileSafari ? 'freeze' : 'none'
+  const preferSimpleTransitions = prefersReducedMotion || isMobileSafari
+  const shouldUseBufferedVideoSwap = isMobileSafari
 
   return {
     deviceProfile,
@@ -59,5 +63,7 @@ export function useLandingPlaybackPolicy(options: UseLandingPlaybackPolicyOption
     isMobileSafari,
     canScrub,
     fallbackBehavior,
+    preferSimpleTransitions,
+    shouldUseBufferedVideoSwap,
   }
 }

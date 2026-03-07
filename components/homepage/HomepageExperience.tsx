@@ -11,7 +11,8 @@ import type { LandingSegmentId } from '@/lib/landing/mediaManifest'
 import { getBackgroundImmediateLandingAssetIds } from '@/lib/landing/preloadPolicy'
 
 const PRELOADER_OUTRO_MS = 1100
-const SCENE_READY_FALLBACK_MS = 2500
+const DEFAULT_SCENE_READY_FALLBACK_MS = 2500
+const IOS_SCENE_READY_FALLBACK_MS = 4000
 
 export function HomepageExperience() {
   const { deviceProfile, isMobileSafari } = useLandingPlaybackPolicy()
@@ -23,6 +24,9 @@ export function HomepageExperience() {
   const [isPreloaderExiting, setIsPreloaderExiting] = useState(false)
   const [isPreloaderHidden, setIsPreloaderHidden] = useState(false)
   const [activeSegmentId, setActiveSegmentId] = useState<LandingSegmentId | null>(null)
+  const sceneReadyFallbackMs = isMobileSafari
+    ? IOS_SCENE_READY_FALLBACK_MS
+    : DEFAULT_SCENE_READY_FALLBACK_MS
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -60,10 +64,10 @@ export function HomepageExperience() {
 
     const fallbackId = window.setTimeout(() => {
       setSceneReady(true)
-    }, SCENE_READY_FALLBACK_MS)
+    }, sceneReadyFallbackMs)
 
     return () => window.clearTimeout(fallbackId)
-  }, [criticalReady, sceneReady])
+  }, [criticalReady, sceneReady, sceneReadyFallbackMs])
 
   useEffect(() => {
     if (!criticalComplete || !sceneReady || isPreloaderExiting) return

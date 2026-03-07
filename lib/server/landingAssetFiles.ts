@@ -3,6 +3,7 @@ import path from 'path'
 
 export type HeroVideoRouteAsset = 'hero' | 'samet'
 export type HeroMainVideoRouteAsset = 'hero' | 'section1' | 'section2' | 'sun' | 'logo'
+export type HeroMainPosterRouteAsset = Exclude<HeroMainVideoRouteAsset, 'logo'>
 export type LandingVideoVariant = '1080' | '720'
 
 type FileDescriptor = {
@@ -15,6 +16,11 @@ const ROOT = process.cwd()
 const HERO_VIDEO_FILES: Record<LandingVideoVariant, string> = {
   '1080': 'hero_scroll_1080p_iframe.mp4',
   '720': 'hero_scroll_720p_iframe.mp4',
+}
+
+const HERO_VIDEO_POSTER_FILES: Record<HeroVideoRouteAsset, string> = {
+  hero: 'hero_poster.jpg',
+  samet: 'samet_poster.jpg',
 }
 
 const HERO_MAIN_VIDEO_FILES: Record<Exclude<HeroMainVideoRouteAsset, 'logo'>, Record<LandingVideoVariant, string>> = {
@@ -34,6 +40,13 @@ const HERO_MAIN_VIDEO_FILES: Record<Exclude<HeroMainVideoRouteAsset, 'logo'>, Re
     '1080': 'the_sun_1080p_iframe.mp4',
     '720': 'the_sun_720p_iframe.mp4',
   },
+}
+
+const HERO_MAIN_POSTER_FILES: Record<HeroMainPosterRouteAsset, string> = {
+  hero: 'hero_poster.jpg',
+  section1: 'hero_scroll_1_section_poster.jpg',
+  section2: 'hero_scroll_2_section_poster.jpg',
+  sun: 'the_sun_poster.jpg',
 }
 
 function resolveExistingPath(candidates: string[]) {
@@ -66,8 +79,8 @@ export function resolveHeroVideoAssetFile(
   }
 }
 
-export function resolveHeroVideoPosterFile(): FileDescriptor {
-  const fileName = 'hero_poster.jpg'
+export function resolveHeroVideoPosterFile(asset: HeroVideoRouteAsset): FileDescriptor {
+  const fileName = HERO_VIDEO_POSTER_FILES[asset]
   return {
     path: resolveExistingPath([
       path.join(ROOT, fileName),
@@ -92,5 +105,12 @@ export function resolveHeroMainAssetFile(
   return {
     path: path.join(ROOT, 'app', 'api', 'hero-main-video', fileName),
     contentType: 'video/mp4',
+  }
+}
+
+export function resolveHeroMainPosterFile(asset: HeroMainPosterRouteAsset): FileDescriptor {
+  return {
+    path: path.join(ROOT, 'app', 'api', 'hero-main-video', HERO_MAIN_POSTER_FILES[asset]),
+    contentType: 'image/jpeg',
   }
 }

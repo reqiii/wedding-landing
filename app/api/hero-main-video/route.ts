@@ -3,7 +3,9 @@ import { stat } from 'fs/promises'
 import type { NextRequest } from 'next/server'
 import {
   resolveHeroMainAssetFile,
+  resolveHeroMainPosterFile,
   type HeroMainVideoRouteAsset,
+  type HeroMainPosterRouteAsset,
   type LandingVideoVariant,
 } from '@/lib/server/landingAssetFiles'
 
@@ -40,15 +42,20 @@ export async function GET(request: NextRequest) {
   const asset = (searchParams.get('asset') ?? 'hero') as HeroMainVideoRouteAsset
   const version = (searchParams.get('v') ?? '1080') as LandingVideoVariant
   const isLogo = asset === 'logo'
+  const isPoster = searchParams.get('poster') === '1'
   const resolvedFile = resolveHeroMainAssetFile(
     asset,
     version === '720' ? '720' : '1080'
   )
+  const posterFile =
+    isPoster && asset !== 'logo'
+      ? resolveHeroMainPosterFile(asset as HeroMainPosterRouteAsset)
+      : null
   const isDev = process.env.NODE_ENV !== 'production'
   let fileStat
 
   try {
-    const assetPath = resolvedFile.path
+    const assetPath = posterFile?.path ?? resolvedFile.path
     if (!existsSync(assetPath)) {
       throw new Error(`Hero main asset missing: ${assetPath}`)
     }
@@ -70,6 +77,18 @@ export async function GET(request: NextRequest) {
 
   const cacheControl = isDev ? 'no-store' : 'public, max-age=31536000, immutable'
   const range = request.headers.get('range')
+
+  if (posterFile) {
+    const stream = createReadStream(posterFile.path)
+    const readable = createWebStream(stream, request.signal)
+    return new Response(readable, {
+      headers: {
+        'Content-Length': String(fileStat.size),
+        'Content-Type': posterFile.contentType,
+        'Cache-Control': cacheControl,
+      },
+    })
+  }
 
   if (isLogo) {
     const stream = createReadStream(resolvedFile.path)

@@ -23,6 +23,27 @@ type UseLandingAssetStoreOptions = {
   useNativeStrictVideo?: boolean
 }
 
+async function runWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  task: (item: T) => Promise<void>
+) {
+  if (items.length === 0) return
+
+  const workerLimit = Math.max(1, Math.min(limit, items.length))
+  let cursor = 0
+
+  await Promise.all(
+    Array.from({ length: workerLimit }, async () => {
+      while (cursor < items.length) {
+        const currentIndex = cursor
+        cursor += 1
+        await task(items[currentIndex])
+      }
+    })
+  )
+}
+
 export function useLandingAssetStore(
   deviceProfile: LandingDeviceProfile | null,
   options: UseLandingAssetStoreOptions = {}
@@ -95,7 +116,10 @@ export function useLandingAssetStore(
 
       const currentAsset = assetsRef.current[assetId]
       if (currentAsset.status === 'ready') {
-        return Promise.resolve({ status: 'ready', resolvedSrc: currentAsset.resolvedSrc })
+        return Promise.resolve<LandingAssetLoadResult>({
+          status: 'ready',
+          resolvedSrc: currentAsset.resolvedSrc,
+        })
       }
 
       const inflight = inflightRef.current[assetId]
@@ -150,38 +174,44 @@ export function useLandingAssetStore(
     let loaded = 0
     let failed = 0
 
-    const results = await Promise.all(
-      criticalIds.map(async (assetId) => {
-        const result = await ensureAsset(
-          assetId,
-          useNativeStrictVideo && assetId !== 'logo' ? 'strict-native' : 'strict'
-        )
-        completed += 1
-        if (result.status === 'ready') {
-          loaded += 1
-        } else {
-          failed += 1
-        }
+    const results: LandingAssetLoadResult[] = new Array(criticalIds.length)
+    const concurrencyLimit = useNativeStrictVideo ? 1 : criticalIds.length
 
-        setCriticalProgress({
-          completed,
-          loaded,
-          total: criticalIds.length,
-          failed,
-        })
+    await runWithConcurrency(criticalIds, concurrencyLimit, async (assetId) => {
+      const result = await ensureAsset(
+        assetId,
+        useNativeStrictVideo && assetId !== 'logo' ? 'strict-native' : 'strict'
+      )
+      const resultIndex = criticalIds.indexOf(assetId)
+      results[resultIndex] = result
+      completed += 1
+      if (result.status === 'ready') {
+        loaded += 1
+      } else {
+        failed += 1
+      }
 
-        return result
+      setCriticalProgress({
+        completed,
+        loaded,
+        total: criticalIds.length,
+        failed,
       })
-    )
+    })
 
     return results
   }, [ensureAsset, useNativeStrictVideo])
 
   const warmAssets = useCallback(
     async (assetIds: LandingAssetId[]) => {
-      await Promise.all(assetIds.map((assetId) => ensureAsset(assetId, 'background')))
+      const uniqueAssetIds = Array.from(new Set(assetIds))
+      const concurrencyLimit = useNativeStrictVideo ? 1 : Math.min(2, uniqueAssetIds.length)
+
+      await runWithConcurrency(uniqueAssetIds, concurrencyLimit, async (assetId) => {
+        await ensureAsset(assetId, 'background')
+      })
     },
-    [ensureAsset]
+    [ensureAsset, useNativeStrictVideo]
   )
 
   const criticalReady = useMemo(() => {

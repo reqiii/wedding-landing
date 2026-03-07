@@ -42,8 +42,8 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
       mobile: '/api/hero-video?asset=samet',
     },
     posterSources: {
-      desktop: '/api/hero-video?poster=1',
-      mobile: '/api/hero-video?poster=1',
+      desktop: '/api/hero-video?asset=samet&poster=1',
+      mobile: '/api/hero-video?asset=samet&poster=1',
     },
   },
   section1: {
@@ -54,6 +54,10 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
       desktop: '/api/hero-main-video?asset=section1&v=1080',
       mobile: '/api/hero-main-video?asset=section1&v=720',
     },
+    posterSources: {
+      desktop: '/api/hero-main-video?asset=section1&poster=1',
+      mobile: '/api/hero-main-video?asset=section1&poster=1',
+    },
   },
   section2: {
     id: 'section2',
@@ -62,6 +66,10 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
     sources: {
       desktop: '/api/hero-main-video?asset=section2&v=1080',
       mobile: '/api/hero-main-video?asset=section2&v=720',
+    },
+    posterSources: {
+      desktop: '/api/hero-main-video?asset=section2&poster=1',
+      mobile: '/api/hero-main-video?asset=section2&poster=1',
     },
   },
   sun: {
@@ -72,6 +80,10 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
       desktop: '/api/hero-main-video?asset=sun&v=1080',
       mobile: '/api/hero-main-video?asset=sun&v=720',
     },
+    posterSources: {
+      desktop: '/api/hero-main-video?asset=sun&poster=1',
+      mobile: '/api/hero-main-video?asset=sun&poster=1',
+    },
   },
   hero: {
     id: 'hero',
@@ -80,6 +92,10 @@ export const LANDING_ASSET_DEFINITIONS: Record<LandingAssetId, LandingAssetDefin
     sources: {
       desktop: '/api/hero-main-video?asset=hero&v=1080',
       mobile: '/api/hero-main-video?asset=hero&v=720',
+    },
+    posterSources: {
+      desktop: '/api/hero-main-video?asset=hero&poster=1',
+      mobile: '/api/hero-main-video?asset=hero&poster=1',
     },
   },
 }

@@ -51,13 +51,13 @@ export async function GET(request: NextRequest) {
   const isDev = process.env.NODE_ENV !== 'production'
   const { searchParams } = request.nextUrl
   const version = (searchParams.get('v') ?? '1080') as LandingVideoVariant
-  const asset = searchParams.get('asset')
+  const asset = searchParams.get('asset') === 'samet' ? 'samet' : 'hero'
   const isPoster = searchParams.get('poster') === '1' || searchParams.get('asset') === 'poster'
   const cacheControl = isDev ? 'no-store' : 'public, max-age=31536000, immutable'
   const resolvedFile = isPoster
-    ? resolveHeroVideoPosterFile()
+    ? resolveHeroVideoPosterFile(asset)
     : resolveHeroVideoAssetFile(
-        asset === 'samet' ? ('samet' as HeroVideoRouteAsset) : ('hero' as HeroVideoRouteAsset),
+        asset as HeroVideoRouteAsset,
         version === '720' ? '720' : '1080'
       )
   const assetPath = resolvedFile.path
