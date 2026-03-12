@@ -1,5 +1,5 @@
-import { HomepageExperience } from '@/components/homepage/HomepageExperience'
+import { LandingShell } from '@/components/landing/LandingShell'
 
 export default function Home() {
-  return <HomepageExperience />
+  return <LandingShell />
 }

@@ -34,24 +34,9 @@ html {
 body {
   font-family: var(--font-inter);
   color: #2C2C2C;
-  background: linear-gradient(135deg, #FEFCFB 0%, #F5E6D3 25%, #FFD4B3 50%, #FFC4D6 75%, #B8E6E6 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 300s ease-in-out infinite;
+  background: #FEFCFB;
   min-height: 100vh;
   overflow-x: hidden;
-  overscroll-behavior: none;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-html, body {
-  scrollbar-width: none;
-}
-
-html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  width: 0;
-  height: 0;
 }
 
 /* Base Glass Styles */

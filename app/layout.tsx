@@ -37,49 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <head>
-        <link rel="preload" as="image" href="/landing-media/logo/logo.svg" fetchPriority="high" />
-        <link rel="preload" as="image" href="/landing-media/posters/samet.jpg" fetchPriority="high" />
-        <link rel="preload" as="image" href="/landing-media/posters/section1.jpg" fetchPriority="high" />
-      </head>
-      <body className="antialiased">
-        {/* SVG Filters for Glass Refraction (background-only layers) */}
-        <svg className="absolute w-0 h-0" aria-hidden="true">
-          <defs>
-            <filter id="glass-displacement-soft" x="-50%" y="-50%" width="200%" height="200%">
-              <feTurbulence
-                baseFrequency="0.02 0.06"
-                numOctaves="2"
-                result="noise"
-                type="fractalNoise"
-              />
-              <feDisplacementMap
-                in="SourceGraphic"
-                in2="noise"
-                scale="6"
-                xChannelSelector="R"
-                yChannelSelector="G"
-              />
-            </filter>
-            <filter id="glass-displacement-strong" x="-50%" y="-50%" width="200%" height="200%">
-              <feTurbulence
-                baseFrequency="0.03 0.08"
-                numOctaves="3"
-                result="noise"
-                type="fractalNoise"
-              />
-              <feDisplacementMap
-                in="SourceGraphic"
-                in2="noise"
-                scale="14"
-                xChannelSelector="R"
-                yChannelSelector="G"
-              />
-            </filter>
-          </defs>
-        </svg>
-        {children}
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   )
 }

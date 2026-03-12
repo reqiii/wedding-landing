@@ -1,20 +1,24 @@
 'use client'
 
 import React from 'react'
-import { useOptionalLandingRuntime } from '@/components/homepage/LandingRuntimeProvider'
 import { cn } from '@/lib/utils'
 
 interface GlassProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'card' | 'button' | 'panel' | 'hero'
   children: React.ReactNode
   className?: string
+  allowGlassDisplacement?: boolean
+  allowBackdropBlur?: boolean
 }
 
-export function Glass({ variant = 'card', children, className, ...props }: GlassProps) {
-  const runtime = useOptionalLandingRuntime()
-  const allowGlassDisplacement = runtime?.policy.allowGlassDisplacement ?? true
-  const allowBackdropBlur = runtime?.policy.allowBackdropBlur ?? true
-
+export function Glass({
+  variant = 'card',
+  children,
+  className,
+  allowGlassDisplacement = false,
+  allowBackdropBlur = true,
+  ...props
+}: GlassProps) {
   const variantClasses = {
     card: 'glass-card',
     button: 'glass-button',
