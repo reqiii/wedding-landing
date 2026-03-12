@@ -83,6 +83,10 @@ function resolveCriticalProgress(
   return progressByState[current]
 }
 
+function readNow() {
+  return typeof performance !== 'undefined' ? performance.now() : Date.now()
+}
+
 function resolvePreloaderProgress(state: ReturnType<LandingRuntimeStore['getState']>) {
   if (state.readiness.revealState === 'revealed') {
     return 1
@@ -115,7 +119,12 @@ export function createLandingRevealController(
   let stallTimer = 0
   let stallDetected = false
   let revealFrame = 0
+  let reconcileQueued = false
   const waiters = new Set<() => void>()
+  let criticalReadyAtMs: number | null = null
+  let revealReadyAtMs: number | null = null
+  const getCriticalReadinessStallMs = () =>
+    store.getState().performanceBudget?.criticalRevealStallMs ?? CRITICAL_READINESS_STALL_MS
 
   const clearStallTimer = () => {
     if (!stallTimer || typeof window === 'undefined') {
@@ -125,6 +134,19 @@ export function createLandingRevealController(
 
     window.clearTimeout(stallTimer)
     stallTimer = 0
+  }
+
+  const startStallTimer = () => {
+    clearStallTimer()
+    if (typeof window === 'undefined' || document.visibilityState === 'hidden') {
+      return
+    }
+
+    stallTimer = window.setTimeout(() => {
+      stallTimer = 0
+      stallDetected = true
+      scheduleReconcile()
+    }, getCriticalReadinessStallMs())
   }
 
   const resolveWaiters = () => {
@@ -213,6 +235,9 @@ export function createLandingRevealController(
         return
       }
 
+      const revealedAtMs = readNow()
+      const initializeStartedAtMs = state.debug.performance.startup.initializeStartedAtMs
+
       store.patch({
         readiness: {
           revealState: 'revealed',
@@ -220,6 +245,17 @@ export function createLandingRevealController(
         preloader: {
           stage: 'ready',
           progress: 1,
+        },
+        debug: {
+          performance: {
+            startup: {
+              criticalReadyAtMs,
+              revealReadyAtMs,
+              revealedAtMs,
+              totalRevealMs:
+                initializeStartedAtMs === null ? null : Math.max(0, revealedAtMs - initializeStartedAtMs),
+            },
+          },
         },
       })
     })
@@ -240,7 +276,7 @@ export function createLandingRevealController(
       targetReadiness: 'poster-ready',
     }
 
-    mediaController.fallbackToPoster()
+    mediaController.fallbackToPoster(reason)
     store.patch({
       readiness: {
         fallbackMode: 'poster',
@@ -284,6 +320,10 @@ export function createLandingRevealController(
       return
     }
 
+    if (criticalReadyAtMs === null && isReadinessSatisfied(criticalReadyState, revealPlan.targetReadiness)) {
+      criticalReadyAtMs = readNow()
+    }
+
     if (criticalReadyState === 'failed') {
       if (freshState.readiness.fallbackMode === 'poster') {
         failReveal('poster fallback failed to reach poster readiness')
@@ -316,10 +356,45 @@ export function createLandingRevealController(
       'revealing',
       0.98
     )
+    if (revealReadyAtMs === null) {
+      revealReadyAtMs = readNow()
+    }
     queueReveal()
   }
 
-  detachStoreSubscription = store.subscribe(reconcile)
+  const scheduleReconcile = () => {
+    if (reconcileQueued) {
+      return
+    }
+
+    reconcileQueued = true
+    queueMicrotask(() => {
+      reconcileQueued = false
+      reconcile()
+    })
+  }
+
+  detachStoreSubscription = store.subscribe(scheduleReconcile)
+  const handleVisibilityChange = () => {
+    const state = store.getState()
+    if (
+      state.readiness.revealState !== 'critical-loading' ||
+      state.readiness.fallbackMode === 'poster'
+    ) {
+      return
+    }
+
+    if (document.visibilityState === 'hidden') {
+      clearStallTimer()
+      return
+    }
+
+    startStallTimer()
+  }
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+  }
 
   return {
     beginInitialization() {
@@ -334,6 +409,14 @@ export function createLandingRevealController(
           stage: 'tier',
           progress: 0.04,
         },
+        debug: {
+          performance: {
+            startup: {
+              initializeStartedAtMs:
+                store.getState().debug.performance.startup.initializeStartedAtMs ?? readNow(),
+            },
+          },
+        },
       })
     },
     markTierResolved(unlockTarget) {
@@ -345,6 +428,15 @@ export function createLandingRevealController(
         'critical-assets',
         0.18
       )
+      store.patch({
+        debug: {
+          performance: {
+            startup: {
+              tierResolvedAtMs: readNow(),
+            },
+          },
+        },
+      })
     },
     beginCriticalLoad(plan) {
       revealPlan = {
@@ -352,16 +444,10 @@ export function createLandingRevealController(
         posterAssetIds: plan.posterAssetIds,
         targetReadiness: plan.targetReadiness,
       }
+      criticalReadyAtMs = null
+      revealReadyAtMs = null
       stallDetected = false
-      clearStallTimer()
-
-      if (typeof window !== 'undefined') {
-        stallTimer = window.setTimeout(() => {
-          stallTimer = 0
-          stallDetected = true
-          reconcile()
-        }, CRITICAL_READINESS_STALL_MS)
-      }
+      startStallTimer()
 
       store.patch({
         readiness: {
@@ -373,7 +459,7 @@ export function createLandingRevealController(
           stage: 'critical-assets',
         },
       })
-      reconcile()
+      scheduleReconcile()
     },
     markBootstrapReady() {
       patchDerivedState(
@@ -384,7 +470,7 @@ export function createLandingRevealController(
         undefined,
         resolvePreloaderProgress(store.getState())
       )
-      reconcile()
+      scheduleReconcile()
     },
     waitForReveal() {
       const state = store.getState()
@@ -402,8 +488,12 @@ export function createLandingRevealController(
         window.cancelAnimationFrame(revealFrame)
         revealFrame = 0
       }
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+      }
       detachStoreSubscription?.()
       detachStoreSubscription = null
+      reconcileQueued = false
       waiters.clear()
     },
   }

@@ -48,7 +48,23 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
       }
 
       initialized = true
+      const initializeStartedAtMs =
+        typeof performance !== 'undefined' ? performance.now() : Date.now()
       revealController.beginInitialization()
+      store.patch({
+        debug: {
+          performance: {
+            startup: {
+              initializeStartedAtMs,
+              tierResolvedAtMs: null,
+              criticalReadyAtMs: null,
+              revealReadyAtMs: null,
+              revealedAtMs: null,
+              totalRevealMs: null,
+            },
+          },
+        },
+      })
 
       const tierSnapshot = await resolveLandingTierSnapshot()
       const policies = createLandingTierPolicies(tierSnapshot)
@@ -71,6 +87,12 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
         debug: {
           lastDowngradeReason: tierSnapshot.downgradeReason,
           lastRevealFailureReason: null,
+          performance: {
+            startup: {
+              tierResolvedAtMs:
+                typeof performance !== 'undefined' ? performance.now() : Date.now(),
+            },
+          },
         },
       })
       revealController.markTierResolved(policies.mediaPolicy.initialReadinessTarget)

@@ -40,6 +40,51 @@ export type LandingWarmupBucket = {
   ready: number
 }
 
+export type LandingStartupTelemetry = {
+  initializeStartedAtMs: number | null
+  tierResolvedAtMs: number | null
+  criticalReadyAtMs: number | null
+  revealReadyAtMs: number | null
+  revealedAtMs: number | null
+  totalRevealMs: number | null
+}
+
+export type LandingMotionTelemetry = {
+  samples: number
+  avgFrameMs: number
+  maxFrameMs: number
+  overBudgetFrames: number
+  lastFrameMs: number
+  fps: number | null
+  lowFpsSamples: number
+}
+
+export type LandingMediaTelemetry = {
+  seekCount: number
+  decodeSamples: number
+  avgDecodeLagMs: number
+  maxDecodeLagMs: number
+  decodeOverBudgetEvents: number
+  fallbackCount: number
+  totalVideoPlanes: number
+  activeVideoPlanes: number
+}
+
+export type LandingRuntimeTelemetry = {
+  longTaskCount: number
+  maxLongTaskMs: number
+  lastLongTaskMs: number
+  mountedPanelCount: number
+  stageNodeCount: number
+}
+
+export type LandingPerformanceTelemetry = {
+  startup: LandingStartupTelemetry
+  motion: LandingMotionTelemetry
+  media: LandingMediaTelemetry
+  runtime: LandingRuntimeTelemetry
+}
+
 export type LandingRuntimeState = {
   initialized: boolean
   sceneId: LandingSceneId
@@ -81,5 +126,6 @@ export type LandingRuntimeState = {
   debug: {
     lastDowngradeReason: string | null
     lastRevealFailureReason: string | null
+    performance: LandingPerformanceTelemetry
   }
 }

@@ -605,5 +605,74 @@ Reduced motion remains route-scoped and conservative. Cinematic transitions and 
 
 These are intentionally left for later phases:
 
-- complete retirement or deletion of old delivery APIs and other phase 0 leftovers
 - optional premium-only HUD affordances beyond the current stage layering shell
+
+## Phase 6 Hardening Report
+
+Phase 6 keeps the Phase 1-5 ownership boundaries intact while hardening the runtime for production variability.
+
+### Runtime Performance Model
+
+The landing now treats performance as a coarse runtime concern instead of a React concern.
+
+- `motionSystem.ts` still owns the only scroll listener and the only `requestAnimationFrame` queue, but now records coarse frame timing, FPS sampling, and long-task summaries through the landing telemetry helpers.
+- `runtimeStore.ts` now preserves nested branch references when nothing in that branch changed, which reduces avoidable selector churn for coarse consumers like `LandingStage.tsx`.
+- `LandingStage.tsx` no longer subscribes to the full `media` object. It reads only the coarse fields it needs and reports DOM residency metrics back into debug telemetry on boundary-level changes.
+- `motionSystem.ts` now caches document scroll span on layout invalidation instead of re-reading scroll height on every frame.
+
+Frame budgets remain tier-aware through `tierPolicies.ts`:
+
+- `tier-0-poster`: `scrollFrameBudgetMs = 10`
+- `tier-1-hold`: `scrollFrameBudgetMs = 12`
+- `tier-2-balanced`: `scrollFrameBudgetMs = 14`
+- `tier-3-premium`: `scrollFrameBudgetMs = 16`
+
+Those budgets are now measured rather than just declared.
+
+### Tier Behavior
+
+The runtime continues to degrade by tier rather than by component-level feature flags.
+
+- `tier-3-premium`: full scrub, standby plane, strongest glass treatment, premium overlay enabled
+- `tier-2-balanced`: limited scrub, single active plane, reduced glass cost, stage overlay retained without premium extras
+- `tier-1-hold`: no scrub, single active plane, overlay and control rail suppressed, no premium effects
+- `tier-0-poster`: poster-only rendering, no video pool, no scrub, no warmup, flat readable surfaces
+
+Reduced motion still resolves directly to `tier-0-poster`, keeping the route readable without trying to animate or decode cinematic media.
+
+### Media Fallback Model
+
+Phase 6 tightens the media fallback contract without moving ownership out of `mediaController.ts`.
+
+- `mediaPool.ts` now allows a true zero-plane poster tier, so `tier-0-poster` no longer keeps an unnecessary video plane alive.
+- `mediaController.ts` now records seek counts, decode lag samples, fallback counts, and active/total video plane counts as coarse telemetry.
+- Active media downgrades now record explicit downgrade reasons when autoplay, seek, decode, or active-plane allocation fails.
+- `revealController.ts` now uses tier-aware reveal stall budgets from `performanceBudget.criticalRevealStallMs` instead of a single hard-coded timeout for every device class.
+- Reveal stall tracking is paused while the document is hidden and resumed when the tab becomes visible again, which prevents backgrounding from tripping false poster fallback.
+- Reveal reconciliation is now scheduled through a microtask boundary instead of patching recursively during synchronous store emission. This prevents stack-overflow failure during coarse reveal-state transitions.
+
+### Visual And DOM Strategy
+
+Phase 6 keeps the CSS-variable-driven stage runtime, but reduces persistent compositor pressure.
+
+- `LandingStage.tsx` now suppresses the glass overlay and control rail on lower tiers instead of keeping every decorative layer mounted for all devices.
+- `LandingShell.module.css` reduces always-on `will-change` usage so only actively animated panel content keeps promotion hints.
+- `LandingGlass.module.css` reduces blur cost for balanced and premium tiers and removes transform drift from the non-premium overlay path.
+- The preloader card now uses a lighter blur treatment to reduce startup paint cost.
+
+The default landing path still animates only `transform` and `opacity`, and React still remains outside per-frame choreography.
+
+### Device Support Strategy
+
+Phase 6 validation focused on the production build and the route-scoped runtime:
+
+- local production builds complete successfully with the hardened runtime
+- landing, admin, and static landing media all return `200` in local production smoke checks
+- the route bundle no longer ships the legacy `hero-video`, `hero-main-video`, or `preloader` API endpoints
+- an automated browser audit during Phase 6 exposed a recursive reveal-store patch path that could overflow the stack and keep the preloader in `critical-loading`; that runtime defect is now fixed in `revealController.ts`
+
+Validation still has practical limits in this environment:
+
+- full device-farm verification across real Safari/iPhone and low-end Android hardware remains a manual follow-up
+- the patched Next.js build still warns about an `@next/swc` binary mismatch on this workstation even though the production build succeeds
+- `npm run build` can intermittently fail on this Windows machine because `prisma generate` sometimes hits a locked `query_engine-windows.dll.node`; `npx next build` succeeds consistently after generation artifacts are already present

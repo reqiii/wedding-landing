@@ -17,6 +17,7 @@ import {
 } from '@/lib/landing/media/readinessMachine'
 import type { LandingSceneId, LandingSegmentConfig, LandingSceneManifest } from '@/lib/landing/scenes/sceneTypes'
 import type { LandingRuntimeStore } from '@/lib/landing/runtime/runtimeStore'
+import { observeVideoDecodeLag } from '@/lib/landing/telemetry/videoDecodeMonitor'
 import type { LandingMediaPolicy } from '@/lib/landing/tier/tierTypes'
 
 type LandingMediaControllerOptions = {
@@ -31,7 +32,7 @@ export type LandingMediaController = {
   syncSegmentProgress: (sceneId: LandingSceneId, progress: number) => void
   preloadRequests: (requests: LandingMediaPreloadRequest[]) => Promise<void>
   warmAssets: (assetIds: LandingAssetId[]) => Promise<void>
-  fallbackToPoster: () => void
+  fallbackToPoster: (reason?: string) => void
   destroy: () => void
 }
 
@@ -57,8 +58,18 @@ export function createLandingMediaController(
   let lastSeekAt = 0
   let scrubFlushTimer = 0
   let decodeLagTimer = 0
+  let decodeLagObserverCleanup: (() => void) | null = null
+  let telemetryFlushTimer = 0
   let awaitingVideoFrame = false
   let decodeLagEvents = 0
+  const mediaTelemetry = {
+    seekCount: 0,
+    decodeSamples: 0,
+    totalDecodeLagMs: 0,
+    maxDecodeLagMs: 0,
+    decodeOverBudgetEvents: 0,
+    fallbackCount: 0,
+  }
 
   type PreloadJob = {
     targetReadiness: LandingReadyTarget
@@ -66,6 +77,76 @@ export function createLandingMediaController(
   }
 
   const preloadJobs = new Map<LandingAssetId, PreloadJob>()
+
+  const getPlaneCounts = () => {
+    let totalVideoPlanes = 0
+    let activeVideoPlanes = 0
+    mediaPool.forEachPlane((plane) => {
+      totalVideoPlanes += 1
+      if (plane.role !== 'idle') {
+        activeVideoPlanes += 1
+      }
+    })
+    return {
+      totalVideoPlanes,
+      activeVideoPlanes,
+    }
+  }
+
+  const flushTelemetry = () => {
+    telemetryFlushTimer = 0
+    const { totalVideoPlanes, activeVideoPlanes } = getPlaneCounts()
+    store.patch({
+      debug: {
+        performance: {
+          media: {
+            seekCount: mediaTelemetry.seekCount,
+            decodeSamples: mediaTelemetry.decodeSamples,
+            avgDecodeLagMs:
+              mediaTelemetry.decodeSamples === 0
+                ? 0
+                : mediaTelemetry.totalDecodeLagMs / mediaTelemetry.decodeSamples,
+            maxDecodeLagMs: mediaTelemetry.maxDecodeLagMs,
+            decodeOverBudgetEvents: mediaTelemetry.decodeOverBudgetEvents,
+            fallbackCount: mediaTelemetry.fallbackCount,
+            totalVideoPlanes,
+            activeVideoPlanes,
+          },
+        },
+      },
+    })
+  }
+
+  const scheduleTelemetryFlush = () => {
+    if (typeof window === 'undefined' || telemetryFlushTimer) {
+      return
+    }
+
+    telemetryFlushTimer = window.setTimeout(flushTelemetry, 1000)
+  }
+
+  const syncDecodeLagObserver = () => {
+    decodeLagObserverCleanup?.()
+    decodeLagObserverCleanup = null
+
+    const activePlane = getActivePlane()
+    if (!activePlane || activeRuntimeMode === 'poster') {
+      scheduleTelemetryFlush()
+      return
+    }
+
+    decodeLagObserverCleanup = observeVideoDecodeLag(activePlane.element, (lagMs) => {
+      mediaTelemetry.decodeSamples += 1
+      mediaTelemetry.totalDecodeLagMs += lagMs
+      mediaTelemetry.maxDecodeLagMs = Math.max(mediaTelemetry.maxDecodeLagMs, lagMs)
+      const decodeBudgetMs = store.getState().performanceBudget?.decodeBudgetMs ?? Number.POSITIVE_INFINITY
+      if (lagMs > decodeBudgetMs) {
+        mediaTelemetry.decodeOverBudgetEvents += 1
+      }
+      scheduleTelemetryFlush()
+    })
+    scheduleTelemetryFlush()
+  }
 
   const updateReadiness = (assetId: LandingAssetId, nextState: LandingReadinessState) => {
     const current = store.getState().media.assetReadiness[assetId] ?? 'idle'
@@ -78,7 +159,7 @@ export function createLandingMediaController(
       activeRuntimeMode !== 'poster' &&
       merged === 'failed'
     ) {
-      fallbackActiveMode('poster')
+      fallbackActiveMode('poster', 'active asset readiness fell to failed')
     }
   }
 
@@ -181,6 +262,10 @@ export function createLandingMediaController(
         window.clearTimeout(decodeLagTimer)
         decodeLagTimer = 0
       }
+      if (telemetryFlushTimer) {
+        window.clearTimeout(telemetryFlushTimer)
+        telemetryFlushTimer = 0
+      }
     }
   }
 
@@ -221,7 +306,10 @@ export function createLandingMediaController(
     element.playsInline = true
   }
 
-  const fallbackActiveMode = (mode: Extract<LandingMediaMode, 'hold' | 'poster'>) => {
+  const fallbackActiveMode = (
+    mode: Extract<LandingMediaMode, 'hold' | 'poster'>,
+    reason: string
+  ) => {
     if (!activeResolvedSegment) {
       return
     }
@@ -232,14 +320,19 @@ export function createLandingMediaController(
 
     activeModeOverride = mode
     activeRuntimeMode = mode
+    mediaTelemetry.fallbackCount += 1
     clearScrubState()
     store.patch({
       readiness: {
         fallbackMode: mode === 'poster' ? 'poster' : store.getState().readiness.fallbackMode,
       },
+      debug: {
+        lastDowngradeReason: reason,
+      },
     })
     updateRuntimeSnapshot(mode)
     applyActiveSegment()
+    scheduleTelemetryFlush()
   }
 
   const applyPlaybackMode = () => {
@@ -261,7 +354,7 @@ export function createLandingMediaController(
       const playPromise = element.play()
       if (playPromise) {
         void playPromise.catch(() => {
-          fallbackActiveMode('hold')
+          fallbackActiveMode('hold', 'autoplay failed for active loop asset')
         })
       }
       return
@@ -273,7 +366,7 @@ export function createLandingMediaController(
         try {
           element.currentTime = Math.min(element.duration, 0.04)
         } catch {
-          fallbackActiveMode('poster')
+          fallbackActiveMode('poster', 'hold-mode seek failed while priming first frame')
         }
       }
       return
@@ -334,13 +427,15 @@ export function createLandingMediaController(
     try {
       element.currentTime = nextTime
     } catch {
-      fallbackActiveMode('hold')
+      fallbackActiveMode('hold', 'scrub seek threw while updating currentTime')
       return
     }
 
     lastSeekAt = now
     lastAppliedProgress = nextProgress
     pendingScrubProgress = null
+    mediaTelemetry.seekCount += 1
+    scheduleTelemetryFlush()
 
     if (
       settings.useVideoFrameCallback &&
@@ -372,7 +467,7 @@ export function createLandingMediaController(
           awaitingVideoFrame = false
           decodeLagEvents += 1
           if (decodeLagEvents >= settings.maxDecodeLagEvents) {
-            fallbackActiveMode('hold')
+            fallbackActiveMode('hold', 'decode lag exceeded scrub tolerance')
             return
           }
 
@@ -435,18 +530,20 @@ export function createLandingMediaController(
       clearScrubState()
       mediaPool.releaseRole('active')
       prepareStandbyPlane(activeResolvedSegment.warmupTargets)
+      syncDecodeLagObserver()
       return
     }
 
     const activePlane = mediaPool.acquirePlane(activeAsset, 'active')
     if (!activePlane) {
-      fallbackActiveMode('poster')
+      fallbackActiveMode('poster', 'media pool could not supply an active plane')
       return
     }
 
     syncPlaneSource(activePlane, activeAsset, activeRuntimeMode)
     applyPlaybackMode()
     prepareStandbyPlane(activeResolvedSegment.warmupTargets)
+    syncDecodeLagObserver()
   }
 
   const attachPlaneListeners = (plane: LandingMediaPlane) => {
@@ -483,7 +580,7 @@ export function createLandingMediaController(
         updateReadiness(assetId, 'failed')
       }
       if (plane.role === 'active') {
-        fallbackActiveMode('poster')
+        fallbackActiveMode('poster', 'active media element emitted an error event')
       }
     }
 
@@ -570,6 +667,7 @@ export function createLandingMediaController(
         mediaPool.configure(state.mediaPolicy, state.performanceBudget)
       }
       applyActiveSegment()
+      scheduleTelemetryFlush()
 
       return () => {
         if (mediaHostCleanup) {
@@ -591,6 +689,7 @@ export function createLandingMediaController(
         mediaPool.configure(state.mediaPolicy, state.performanceBudget)
       }
       applyActiveSegment()
+      scheduleTelemetryFlush()
     },
     syncSegmentProgress(sceneId, progress) {
       const policy = getMediaPolicy()
@@ -621,6 +720,7 @@ export function createLandingMediaController(
 
       mediaPool.configure(policy, store.getState().performanceBudget)
       await runPreloadRequests(requests, policy)
+      scheduleTelemetryFlush()
     },
     async warmAssets(assetIds) {
       const policy = store.getState().mediaPolicy
@@ -637,15 +737,22 @@ export function createLandingMediaController(
         policy
       )
       prepareStandbyPlane(assetIds)
+      scheduleTelemetryFlush()
     },
-    fallbackToPoster() {
-      fallbackActiveMode('poster')
+    fallbackToPoster(reason = 'reveal controller requested poster fallback') {
+      fallbackActiveMode('poster', reason)
     },
     destroy() {
       mediaHostCleanup?.()
       mediaHostCleanup = null
+      decodeLagObserverCleanup?.()
+      decodeLagObserverCleanup = null
       clearScrubState()
       preloadJobs.clear()
+      if (telemetryFlushTimer && typeof window !== 'undefined') {
+        window.clearTimeout(telemetryFlushTimer)
+        telemetryFlushTimer = 0
+      }
       mediaPool.forEachPlane((plane) => {
         plane.element.pause()
         plane.element.removeAttribute('src')
@@ -670,6 +777,9 @@ export function createLandingMediaController(
         preloader: {
           progress: 0,
           stage: 'boot',
+        },
+        debug: {
+          lastDowngradeReason: null,
         },
       })
     },

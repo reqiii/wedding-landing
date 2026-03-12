@@ -29,6 +29,7 @@ export function createLandingTierPolicies(
           maxActiveVideos: 0,
           scrollFrameBudgetMs: 10,
           decodeBudgetMs: 0,
+          criticalRevealStallMs: 2500,
           allowPremiumEffects: false,
         },
       }
@@ -57,6 +58,7 @@ export function createLandingTierPolicies(
           maxActiveVideos: 1,
           scrollFrameBudgetMs: 12,
           decodeBudgetMs: 24,
+          criticalRevealStallMs: 4000,
           allowPremiumEffects: false,
         },
       }
@@ -85,6 +87,7 @@ export function createLandingTierPolicies(
           maxActiveVideos: 1,
           scrollFrameBudgetMs: 14,
           decodeBudgetMs: 20,
+          criticalRevealStallMs: 5500,
           allowPremiumEffects: false,
         },
       }
@@ -114,6 +117,7 @@ export function createLandingTierPolicies(
           maxActiveVideos: 2,
           scrollFrameBudgetMs: 16,
           decodeBudgetMs: 18,
+          criticalRevealStallMs: 6500,
           allowPremiumEffects: true,
         },
       }

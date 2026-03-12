@@ -47,6 +47,7 @@ export type LandingPerformanceBudget = {
   maxActiveVideos: number
   scrollFrameBudgetMs: number
   decodeBudgetMs: number
+  criticalRevealStallMs: number
   allowPremiumEffects: boolean
 }
 

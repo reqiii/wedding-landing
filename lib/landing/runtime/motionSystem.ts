@@ -7,6 +7,9 @@ import type {
   LandingSegmentConfig,
   LandingSegmentId,
 } from '@/lib/landing/scenes/sceneTypes'
+import { createFpsMonitor } from '@/lib/landing/telemetry/fpsMonitor'
+import { observeLongTasks } from '@/lib/landing/telemetry/longTaskMonitor'
+import { createScrollFrameMonitor } from '@/lib/landing/telemetry/scrollFrameMonitor'
 import { clamp, createSceneRanges } from '@/lib/landing/runtime/progressMath'
 import type { LandingRuntimeStore } from '@/lib/landing/runtime/runtimeStore'
 import type { LandingMotionPolicy } from '@/lib/landing/tier/tierTypes'
@@ -120,10 +123,8 @@ function readScrollY() {
   return Math.max(window.scrollY, scrollElement.scrollTop, document.body.scrollTop)
 }
 
-function readDocumentProgress(viewportHeight: number) {
-  const scrollElement = document.scrollingElement ?? document.documentElement ?? document.body
-  const total = Math.max(1, scrollElement.scrollHeight - viewportHeight)
-  return clamp(readScrollY() / total)
+function readDocumentProgress(scrollY: number, total: number) {
+  return clamp(scrollY / Math.max(1, total))
 }
 
 function getWindowRadius(motionPolicy: LandingMotionPolicy) {
@@ -242,14 +243,83 @@ export function createLandingMotionSystem(
   let lastProcessedScrollY = 0
   let scrollDirection = 0
   let viewportHeight = 0
+  let documentScrollTotal = 1
   let activeSceneIndex = -1
   let layoutDirty = false
   let framePending = false
   let rafId = 0
   let resizeObserver: ResizeObserver | null = null
   let detachStoreSubscription: (() => void) | null = null
+  let detachLongTaskObserver: (() => void) | null = null
+  let telemetryFlushTimer = 0
   let lastMotionPolicy = runtimeStore.getState().motionPolicy
   let lastMediaPolicy = runtimeStore.getState().mediaPolicy
+  const motionTelemetry = {
+    samples: 0,
+    totalFrameMs: 0,
+    maxFrameMs: 0,
+    overBudgetFrames: 0,
+    lastFrameMs: 0,
+    fps: null as number | null,
+    lowFpsSamples: 0,
+  }
+  const runtimeTelemetry = {
+    longTaskCount: 0,
+    maxLongTaskMs: 0,
+    lastLongTaskMs: 0,
+  }
+  const flushTelemetry = () => {
+    telemetryFlushTimer = 0
+    runtimeStore.patch({
+      debug: {
+        performance: {
+          motion: {
+            samples: motionTelemetry.samples,
+            avgFrameMs:
+              motionTelemetry.samples === 0 ? 0 : motionTelemetry.totalFrameMs / motionTelemetry.samples,
+            maxFrameMs: motionTelemetry.maxFrameMs,
+            overBudgetFrames: motionTelemetry.overBudgetFrames,
+            lastFrameMs: motionTelemetry.lastFrameMs,
+            fps: motionTelemetry.fps,
+            lowFpsSamples: motionTelemetry.lowFpsSamples,
+          },
+          runtime: {
+            longTaskCount: runtimeTelemetry.longTaskCount,
+            maxLongTaskMs: runtimeTelemetry.maxLongTaskMs,
+            lastLongTaskMs: runtimeTelemetry.lastLongTaskMs,
+          },
+        },
+      },
+    })
+  }
+  const scheduleTelemetryFlush = () => {
+    if (typeof window === 'undefined' || telemetryFlushTimer) {
+      return
+    }
+
+    telemetryFlushTimer = window.setTimeout(flushTelemetry, 1000)
+  }
+  const scrollFrameMonitor = createScrollFrameMonitor((sample) => {
+    const scrollFrameBudgetMs = runtimeStore.getState().performanceBudget?.scrollFrameBudgetMs ?? 16
+    motionTelemetry.samples += 1
+    motionTelemetry.totalFrameMs += sample.duration
+    motionTelemetry.maxFrameMs = Math.max(motionTelemetry.maxFrameMs, sample.duration)
+    motionTelemetry.lastFrameMs = sample.duration
+    if (sample.duration > scrollFrameBudgetMs) {
+      motionTelemetry.overBudgetFrames += 1
+    }
+    scheduleTelemetryFlush()
+  })
+  const fpsMonitor =
+    typeof window === 'undefined'
+      ? null
+      : createFpsMonitor((sample) => {
+          motionTelemetry.fps = sample.fps
+          if (sample.fps < 50) {
+            motionTelemetry.lowFpsSamples += 1
+          }
+          scheduleTelemetryFlush()
+        })
 
   const warmSegmentTargets = (segmentId: LandingSegmentId | null) => {
     const mediaPolicy = runtimeStore.getState().mediaPolicy
@@ -274,6 +344,11 @@ export function createLandingMotionSystem(
     scene.startPx = viewportHeight * 0.8
     scene.endPx = viewportHeight * 0.2
     scene.total = Math.max(1, scene.height + (scene.startPx - scene.endPx))
+  }
+
+  const syncDocumentMeasurement = () => {
+    const scrollElement = document.scrollingElement ?? document.documentElement ?? document.body
+    documentScrollTotal = Math.max(1, scrollElement.scrollHeight - viewportHeight)
   }
 
   const writeBoundaryDataset = (
@@ -304,152 +379,161 @@ export function createLandingMotionSystem(
     framePending = false
     rafId = 0
 
-    if (!mounted || !primaryScene.root) {
-      return
-    }
-
-    viewportHeight = window.innerHeight || 0
-    currentScrollY = readScrollY()
-
-    if (layoutDirty) {
-      for (let index = 0; index < scenes.length; index += 1) {
-        syncSceneMeasurement(scenes[index])
-      }
-    }
-
-    if (currentScrollY > lastProcessedScrollY) {
-      scrollDirection = 1
-    } else if (currentScrollY < lastProcessedScrollY) {
-      scrollDirection = -1
-    }
-
-    const motionPolicy = getMotionPolicy()
-    const windowRadius = getWindowRadius(motionPolicy)
-    const documentProgress = readDocumentProgress(viewportHeight)
-    let nextActiveSceneIndex = -1
-    let boundarySceneId: LandingSceneId | null = null
-    let boundarySegmentId = primaryScene.segments[primaryScene.activeSegmentIndex].id
-    let boundarySegmentConfig = primaryScene.segments[primaryScene.activeSegmentIndex].config
-    let boundaryChanged = false
-    let shouldWarmBoundarySegment = false
-
-    for (let sceneIndex = 0; sceneIndex < scenes.length; sceneIndex += 1) {
-      const scene = scenes[sceneIndex]
-      const root = scene.root
-      if (!root) {
-        continue
+    scrollFrameMonitor.measure(() => {
+      if (!mounted || !primaryScene.root) {
+        return
       }
 
-      const rawSceneProgress = (currentScrollY - scene.top + scene.startPx) / scene.total
-      const sceneProgress = clamp(rawSceneProgress)
-      const sceneIsActive = rawSceneProgress >= 0 && rawSceneProgress <= 1
-      const nextActiveSegmentIndex = getStableActiveSegmentIndex(
-        scene,
-        sceneProgress,
-        scrollDirection
-      )
-      const activeSegment = scene.segments[nextActiveSegmentIndex]
-      const activeSegmentProgress = clamp(
-        (sceneProgress - activeSegment.start) / activeSegment.span
-      )
-      const nearWindowStart = Math.max(0, nextActiveSegmentIndex - windowRadius)
-      const nearWindowEnd = Math.min(scene.segments.length - 1, nextActiveSegmentIndex + windowRadius)
-      const sceneBoundaryChanged =
-        forceResync || scene.active !== sceneIsActive || scene.activeSegmentIndex !== nextActiveSegmentIndex
+      viewportHeight = window.innerHeight || 0
+      currentScrollY = readScrollY()
 
-      if (sceneIsActive && nextActiveSceneIndex === -1) {
-        nextActiveSceneIndex = sceneIndex
-        boundarySceneId = scene.id
-        boundarySegmentId = activeSegment.id
-        boundarySegmentConfig = activeSegment.config
-        boundaryChanged = sceneBoundaryChanged
-        shouldWarmBoundarySegment = sceneBoundaryChanged
+      if (layoutDirty) {
+        syncDocumentMeasurement()
+        for (let index = 0; index < scenes.length; index += 1) {
+          syncSceneMeasurement(scenes[index])
+        }
       }
 
-      removeSceneWindowVariables(scene, nearWindowStart, nearWindowEnd)
+      if (currentScrollY > lastProcessedScrollY) {
+        scrollDirection = 1
+      } else if (currentScrollY < lastProcessedScrollY) {
+        scrollDirection = -1
+      }
 
-      if (motionPolicy.writeCssVariables) {
-        scene.lastScrollProgressCss = writeCssNumber(
-          root,
-          ROOT_SCROLL_PROGRESS_VAR,
-          documentProgress,
-          scene.lastScrollProgressCss,
-          ROOT_PROGRESS_EPSILON
-        )
-        scene.lastSceneProgressCss = writeCssNumber(
-          root,
-          ROOT_SCENE_PROGRESS_VAR,
+      const motionPolicy = getMotionPolicy()
+      const windowRadius = getWindowRadius(motionPolicy)
+      const documentProgress = readDocumentProgress(currentScrollY, documentScrollTotal)
+      let nextActiveSceneIndex = -1
+      let boundarySceneId: LandingSceneId | null = null
+      let boundarySegmentId = primaryScene.segments[primaryScene.activeSegmentIndex].id
+      let boundarySegmentConfig = primaryScene.segments[primaryScene.activeSegmentIndex].config
+      let boundaryChanged = false
+      let shouldWarmBoundarySegment = false
+
+      for (let sceneIndex = 0; sceneIndex < scenes.length; sceneIndex += 1) {
+        const scene = scenes[sceneIndex]
+        const root = scene.root
+        if (!root) {
+          continue
+        }
+
+        const rawSceneProgress = (currentScrollY - scene.top + scene.startPx) / scene.total
+        const sceneProgress = clamp(rawSceneProgress)
+        const sceneIsActive = rawSceneProgress >= 0 && rawSceneProgress <= 1
+        const nextActiveSegmentIndex = getStableActiveSegmentIndex(
+          scene,
           sceneProgress,
-          scene.lastSceneProgressCss,
-          ROOT_PROGRESS_EPSILON
+          scrollDirection
         )
-        scene.lastSegmentProgressCss = writeCssNumber(
-          root,
-          ROOT_SEGMENT_PROGRESS_VAR,
-          activeSegmentProgress,
-          scene.lastSegmentProgressCss,
-          SEGMENT_PROGRESS_EPSILON
+        const activeSegment = scene.segments[nextActiveSegmentIndex]
+        const activeSegmentProgress = clamp(
+          (sceneProgress - activeSegment.start) / activeSegment.span
         )
+        const nearWindowStart = Math.max(0, nextActiveSegmentIndex - windowRadius)
+        const nearWindowEnd = Math.min(scene.segments.length - 1, nextActiveSegmentIndex + windowRadius)
+        const sceneBoundaryChanged =
+          forceResync || scene.active !== sceneIsActive || scene.activeSegmentIndex !== nextActiveSegmentIndex
 
-        for (let segmentIndex = nearWindowStart; segmentIndex <= nearWindowEnd; segmentIndex += 1) {
-          const segment = scene.segments[segmentIndex]
-          const segmentProgress = clamp((sceneProgress - segment.start) / segment.span)
-          segment.lastCssValue = writeCssNumber(
+        if (sceneIsActive && nextActiveSceneIndex === -1) {
+          nextActiveSceneIndex = sceneIndex
+          boundarySceneId = scene.id
+          boundarySegmentId = activeSegment.id
+          boundarySegmentConfig = activeSegment.config
+          boundaryChanged = sceneBoundaryChanged
+          shouldWarmBoundarySegment = sceneBoundaryChanged
+        }
+
+        removeSceneWindowVariables(scene, nearWindowStart, nearWindowEnd)
+
+        if (motionPolicy.writeCssVariables) {
+          scene.lastScrollProgressCss = writeCssNumber(
             root,
-            segment.cssVariableName,
-            segmentProgress,
-            segment.lastCssValue,
+            ROOT_SCROLL_PROGRESS_VAR,
+            documentProgress,
+            scene.lastScrollProgressCss,
+            ROOT_PROGRESS_EPSILON
+          )
+          scene.lastSceneProgressCss = writeCssNumber(
+            root,
+            ROOT_SCENE_PROGRESS_VAR,
+            sceneProgress,
+            scene.lastSceneProgressCss,
+            ROOT_PROGRESS_EPSILON
+          )
+          scene.lastSegmentProgressCss = writeCssNumber(
+            root,
+            ROOT_SEGMENT_PROGRESS_VAR,
+            activeSegmentProgress,
+            scene.lastSegmentProgressCss,
             SEGMENT_PROGRESS_EPSILON
           )
+
+          for (let segmentIndex = nearWindowStart; segmentIndex <= nearWindowEnd; segmentIndex += 1) {
+            const segment = scene.segments[segmentIndex]
+            const segmentProgress = clamp((sceneProgress - segment.start) / segment.span)
+            segment.lastCssValue = writeCssNumber(
+              root,
+              segment.cssVariableName,
+              segmentProgress,
+              segment.lastCssValue,
+              SEGMENT_PROGRESS_EPSILON
+            )
+          }
+        }
+
+        writeBoundaryDataset(
+          root,
+          sceneIsActive ? scene.id : null,
+          activeSegment.id,
+          sceneIsActive,
+          forceResync
+        )
+
+        if (sceneBoundaryChanged) {
+          scene.active = sceneIsActive
+          scene.activeSegmentIndex = nextActiveSegmentIndex
+        }
+
+        if (sceneIsActive && motionPolicy.scrubMode !== 'off') {
+          const mediaProgressEpsilon = getMediaProgressEpsilon(motionPolicy)
+          if (
+            forceResync ||
+            sceneBoundaryChanged ||
+            Math.abs(scene.lastMediaProgress - activeSegmentProgress) > mediaProgressEpsilon
+          ) {
+            scene.lastMediaProgress = activeSegmentProgress
+            mediaController.syncSegmentProgress(scene.id, activeSegmentProgress)
+          }
         }
       }
 
-      writeBoundaryDataset(root, sceneIsActive ? scene.id : null, activeSegment.id, sceneIsActive, forceResync)
-
-      if (sceneBoundaryChanged) {
-        scene.active = sceneIsActive
-        scene.activeSegmentIndex = nextActiveSegmentIndex
+      if (nextActiveSceneIndex === -1) {
+        boundarySegmentId = primaryScene.segments[primaryScene.activeSegmentIndex].id
+        boundarySegmentConfig = primaryScene.segments[primaryScene.activeSegmentIndex].config
+        boundaryChanged = activeSceneIndex !== -1
       }
 
-      if (sceneIsActive && motionPolicy.scrubMode !== 'off') {
-        const mediaProgressEpsilon = getMediaProgressEpsilon(motionPolicy)
-        if (
-          forceResync ||
-          sceneBoundaryChanged ||
-          Math.abs(scene.lastMediaProgress - activeSegmentProgress) > mediaProgressEpsilon
-        ) {
-          scene.lastMediaProgress = activeSegmentProgress
-          mediaController.syncSegmentProgress(scene.id, activeSegmentProgress)
+      if (forceResync || activeSceneIndex !== nextActiveSceneIndex || boundaryChanged) {
+        runtimeStore.setMotionBoundary(boundarySceneId, boundarySegmentId)
+        mediaController.activateScene(boundarySceneId)
+        mediaController.setActiveSegment(boundarySegmentConfig)
+
+        if (boundarySceneId && shouldWarmBoundarySegment) {
+          warmSegmentTargets(boundarySegmentId)
         }
       }
-    }
 
-    if (nextActiveSceneIndex === -1) {
-      boundarySegmentId = primaryScene.segments[primaryScene.activeSegmentIndex].id
-      boundarySegmentConfig = primaryScene.segments[primaryScene.activeSegmentIndex].config
-      boundaryChanged = activeSceneIndex !== -1
-    }
-
-    if (forceResync || activeSceneIndex !== nextActiveSceneIndex || boundaryChanged) {
-      runtimeStore.setMotionBoundary(boundarySceneId, boundarySegmentId)
-      mediaController.activateScene(boundarySceneId)
-      mediaController.setActiveSegment(boundarySegmentConfig)
-
-      if (boundarySceneId && shouldWarmBoundarySegment) {
-        warmSegmentTargets(boundarySegmentId)
+      activeSceneIndex = nextActiveSceneIndex
+      lastProcessedScrollY = currentScrollY
+      layoutDirty = false
+      if (!runtimeStore.getState().readiness.motionReady) {
+        runtimeStore.patch({
+          readiness: {
+            motionReady: true,
+          },
+        })
       }
-    }
-
-    activeSceneIndex = nextActiveSceneIndex
-    lastProcessedScrollY = currentScrollY
-    layoutDirty = false
-    if (!runtimeStore.getState().readiness.motionReady) {
-      runtimeStore.patch({
-        readiness: {
-          motionReady: true,
-        },
-      })
-    }
+    })
   }
 
   const queueFrame = (forceLayout = false) => {
@@ -497,6 +581,13 @@ export function createLandingMotionSystem(
     resizeObserver = null
     detachStoreSubscription?.()
     detachStoreSubscription = null
+    detachLongTaskObserver?.()
+    detachLongTaskObserver = null
+    fpsMonitor?.stop()
+    if (telemetryFlushTimer && typeof window !== 'undefined') {
+      window.clearTimeout(telemetryFlushTimer)
+      telemetryFlushTimer = 0
+    }
     window.removeEventListener('scroll', handleScroll)
     window.removeEventListener('resize', handleLayoutInvalidation)
     window.removeEventListener('orientationchange', handleLayoutInvalidation)
@@ -523,6 +614,16 @@ export function createLandingMotionSystem(
       primaryScene.lastWindowStart = -1
       primaryScene.lastWindowEnd = -1
       primaryScene.lastMediaProgress = Number.NaN
+      motionTelemetry.samples = 0
+      motionTelemetry.totalFrameMs = 0
+      motionTelemetry.maxFrameMs = 0
+      motionTelemetry.overBudgetFrames = 0
+      motionTelemetry.lastFrameMs = 0
+      motionTelemetry.fps = null
+      motionTelemetry.lowFpsSamples = 0
+      runtimeTelemetry.longTaskCount = 0
+      runtimeTelemetry.maxLongTaskMs = 0
+      runtimeTelemetry.lastLongTaskMs = 0
       currentScrollY = readScrollY()
       lastProcessedScrollY = currentScrollY
       scrollDirection = 0
@@ -545,6 +646,14 @@ export function createLandingMotionSystem(
         resizeObserver = new ResizeObserver(handleLayoutInvalidation)
         resizeObserver.observe(sceneRoot)
       }
+
+      detachLongTaskObserver = observeLongTasks((duration) => {
+        runtimeTelemetry.longTaskCount += 1
+        runtimeTelemetry.maxLongTaskMs = Math.max(runtimeTelemetry.maxLongTaskMs, duration)
+        runtimeTelemetry.lastLongTaskMs = duration
+        scheduleTelemetryFlush()
+      })
+      fpsMonitor?.start()
 
       detachStoreSubscription = runtimeStore.subscribe(() => {
         const state = runtimeStore.getState()

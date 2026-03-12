@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import styles from '@/components/landing/LandingShell.module.css'
 import { LandingPanelFrame } from '@/components/landing/panels/LandingPanelFrame'
 import { GlassOverlay } from '@/components/landing/ui/GlassPanel'
@@ -18,8 +19,11 @@ export function LandingStage({
   store,
   mediaHostRef,
 }: LandingStageProps) {
+  const stageRef = useRef<HTMLDivElement | null>(null)
   const activeSegmentId = useLandingRuntimeSelector(store, (state) => state.motion.activeSegmentId)
-  const media = useLandingRuntimeSelector(store, (state) => state.media)
+  const activeMode = useLandingRuntimeSelector(store, (state) => state.media.activeMode)
+  const activePosterSrc = useLandingRuntimeSelector(store, (state) => state.media.activePosterSrc)
+  const assetReadiness = useLandingRuntimeSelector(store, (state) => state.media.assetReadiness)
   const readiness = useLandingRuntimeSelector(store, (state) => state.readiness.activeAssetReadyState)
   const tierSnapshot = useLandingRuntimeSelector(store, (state) => state.tierSnapshot)
   const performanceBudget = useLandingRuntimeSelector(store, (state) => state.performanceBudget)
@@ -37,9 +41,32 @@ export function LandingStage({
   const visualTier = tierSnapshot?.tier ?? 'tier-1-hold'
   const prefersReducedMotion = tierSnapshot?.prefersReducedMotion ?? false
   const allowPremiumEffects = performanceBudget?.allowPremiumEffects ?? false
+  const mountedPanelCount = visibleSegments.filter((segment) => segment.panelKey).length
+  const showStageOverlay = visualTier === 'tier-2-balanced' || allowPremiumEffects
+  const showControlsRail = showStageOverlay && !prefersReducedMotion
+
+  useEffect(() => {
+    const stage = stageRef.current
+    if (!stage) {
+      return
+    }
+
+    const stageNodeCount = stage.querySelectorAll('*').length
+    store.patch({
+      debug: {
+        performance: {
+          runtime: {
+            mountedPanelCount,
+            stageNodeCount,
+          },
+        },
+      },
+    })
+  }, [mountedPanelCount, activeSegmentId, showControlsRail, showStageOverlay, store])
 
   return (
     <div
+      ref={stageRef}
       className={styles.stickyStage}
       data-visual-tier={visualTier}
       data-premium-effects={allowPremiumEffects ? 'true' : 'false'}
@@ -49,11 +76,11 @@ export function LandingStage({
         <div
           ref={mediaHostRef}
           className={`${styles.mediaHost} ${
-            media.activeMode !== 'poster' && readiness !== 'idle' && readiness !== 'failed'
+            activeMode !== 'poster' && readiness !== 'idle' && readiness !== 'failed'
               ? styles.mediaVisible
               : ''
           }`}
-          data-media-mode={media.activeMode}
+          data-media-mode={activeMode}
           data-asset-ready={readiness}
           aria-hidden="true"
         />
@@ -63,9 +90,9 @@ export function LandingStage({
         <div
           className={styles.posterLayer}
           style={
-            media.activePosterSrc
+            activePosterSrc
               ? {
-                  backgroundImage: `url("${media.activePosterSrc}")`,
+                  backgroundImage: `url("${activePosterSrc}")`,
                 }
               : undefined
           }
@@ -83,7 +110,7 @@ export function LandingStage({
 
               const isActive = segment.id === activeSegmentId
               const segmentReadyState = segment.media.assetId
-                ? media.assetReadiness[segment.media.assetId]
+                ? assetReadiness[segment.media.assetId]
                 : undefined
               const position =
                 index < resolvedActiveIndex
@@ -109,15 +136,21 @@ export function LandingStage({
         </div>
       </div>
 
-      <div className={styles.glassOverlayLayer}>
-        <GlassOverlay
-          tier={visualTier}
-          allowPremiumEffects={allowPremiumEffects}
-          className={styles.stageGlassOverlay}
-        />
-      </div>
+      {showStageOverlay ? (
+        <div className={styles.glassOverlayLayer}>
+          <GlassOverlay
+            tier={visualTier}
+            allowPremiumEffects={allowPremiumEffects}
+            className={styles.stageGlassOverlay}
+          />
+        </div>
+      ) : null}
 
-      <div className={styles.controlsLayer} aria-hidden="true">
+      <div
+        className={styles.controlsLayer}
+        aria-hidden="true"
+        data-visible={showControlsRail ? 'true' : 'false'}
+      >
         <div className={styles.panelStack}>
           <div className={styles.stageControlsRail} />
         </div>

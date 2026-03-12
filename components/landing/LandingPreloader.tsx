@@ -35,8 +35,9 @@ export function LandingPreloader({
       )}
       data-stage={stage}
       data-fallback={fallback ? 'true' : 'false'}
+      aria-busy={visible ? 'true' : 'false'}
     >
-      <div className={styles.preloaderCard}>
+      <div className={styles.preloaderCard} role="status" aria-live="polite">
         <div className={styles.preloaderMeta}>
           <div className="text-xs uppercase tracking-[0.28em] text-white/55">{tierLabel}</div>
           <div className={styles.preloaderStageLabel}>{stage.replace(/-/g, ' ')}</div>

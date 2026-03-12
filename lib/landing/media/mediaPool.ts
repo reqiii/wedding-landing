@@ -64,7 +64,7 @@ function createVideoPlane(index: number): LandingMediaPlane {
 export function createLandingMediaPool(options: LandingMediaPoolOptions = {}): LandingMediaPool {
   const { onPlaneCreated } = options
   let host: HTMLElement | null = null
-  let maxPlanes = 1
+  let maxPlanes = 0
   const planes: LandingMediaPlane[] = []
 
   const attachPlane = (plane: LandingMediaPlane) => {
@@ -151,11 +151,8 @@ export function createLandingMediaPool(options: LandingMediaPoolOptions = {}): L
     },
     configure(policy, budget) {
       const budgetMax = budget?.maxActiveVideos ?? 1
-      maxPlanes = Math.max(0, Math.min(budgetMax, Math.max(1, 1 + policy.standbyPoolSize)))
-
-      if (maxPlanes === 0) {
-        maxPlanes = 1
-      }
+      const requestedPlanes = policy.allowVideo ? 1 + policy.standbyPoolSize : 0
+      maxPlanes = Math.max(0, Math.min(budgetMax, requestedPlanes))
 
       ensurePoolSize(maxPlanes)
       trimPool()
