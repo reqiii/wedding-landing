@@ -105,7 +105,10 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
         posterAssetIds: posterAssetId ? [posterAssetId] : [],
         targetReadiness: policies.mediaPolicy.initialReadinessTarget,
       })
-      await warmupCoordinator.loadCriticalAssets()
+      // Critical warmup continues in the background. Reveal readiness is owned by
+      // the reveal controller via store-driven media readiness, so bootstrap must
+      // not deadlock on a stricter preload promise after a reveal-target downgrade.
+      void warmupCoordinator.loadCriticalAssets()
       revealController.markBootstrapReady()
       await revealController.waitForReveal()
       await warmupCoordinator.warmInitialAssets(initialSegment.id)
