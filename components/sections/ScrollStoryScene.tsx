@@ -36,6 +36,8 @@ export function ScrollStoryScene({
   const scrubRafRef = useRef<number | null>(null)
   const segmentProgressRef = useRef<Record<LandingSegmentId, number>>({} as Record<LandingSegmentId, number>)
   const isSceneActiveRef = useRef(false)
+  const activeSegmentIdRef = useRef<LandingSegmentId>('section-1')
+  const timedTransitionStartRef = useRef<LandingSegmentId | null>(null)
   const engineRef = useRef(
     createScrollEngine<LandingSegmentId>({
       onScrollFrame: playbackPolicy.reportScrollFrame,
@@ -79,6 +81,7 @@ export function ScrollStoryScene({
   const shouldShowPosterFallback = Boolean(activeAsset?.posterSrc) && (policy.preferPosters || !videoReady)
 
   useEffect(() => {
+    activeSegmentIdRef.current = activeSegment.id
     onSegmentChange?.(activeSegment.id)
   }, [activeSegment.id, onSegmentChange])
 
@@ -137,7 +140,8 @@ export function ScrollStoryScene({
     setVideoReady(video.readyState >= 2)
     video.muted = true
     video.playsInline = true
-    video.preload = activeSegment.id === 'section-1' ? 'auto' : 'metadata'
+    video.autoplay = false
+    video.preload = activeSegment.id === 'section-1' || activeSegment.kind === 'transition' ? 'auto' : 'metadata'
     video.loop = activeSegment.playbackMode === 'loop'
     video.poster = activeAsset.posterSrc ?? ''
     video.src = activeAsset.src
@@ -150,21 +154,59 @@ export function ScrollStoryScene({
       const playPromise = video.play()
       playPromise?.catch(() => undefined)
     } else if (activeSegment.kind === 'transition' && playbackPolicy.canScrub) {
+      timedTransitionStartRef.current = null
       video.currentTime = 0
       video.pause()
     } else if (activeSegment.kind === 'transition') {
+      timedTransitionStartRef.current = activeSegment.id
       video.loop = false
-      const duration = Number.isFinite(video.duration) ? video.duration : 0
-      if (duration > 0) {
-        const rawProgress = segmentProgressRef.current[activeSegment.id] ?? 0
-        video.currentTime = clamp(rawProgress) * duration
-      } else {
-        video.currentTime = 0
+      let cancelled = false
+
+      const attemptPlay = () => {
+        if (cancelled) return
+        if (!isSceneActiveRef.current || activeSegmentIdRef.current !== activeSegment.id) return
+        if (timedTransitionStartRef.current !== activeSegment.id) return
+
+        const duration = Number.isFinite(video.duration) ? video.duration : 0
+        if (duration > 0 && video.currentTime > 0.08) {
+          return
+        }
+
+        try {
+          video.currentTime = 0
+        } catch {
+          // Safari can throw before metadata is available; retry on readiness events.
+        }
+
+        const playPromise = video.play()
+        playPromise?.catch(() => undefined)
       }
 
-      const playPromise = video.play()
-      playPromise?.catch(() => undefined)
+      const handlePlaybackReady = () => {
+        setVideoReady(true)
+        attemptPlay()
+      }
+
+      video.addEventListener('loadedmetadata', handlePlaybackReady)
+      video.addEventListener('loadeddata', handlePlaybackReady)
+      video.addEventListener('canplay', handlePlaybackReady)
+      video.addEventListener('playing', handlePlaybackReady)
+
+      attemptPlay()
+
+      return () => {
+        cancelled = true
+        video.pause()
+        video.removeEventListener('loadedmetadata', handlePlaybackReady)
+        video.removeEventListener('loadeddata', handlePlaybackReady)
+        video.removeEventListener('canplay', handlePlaybackReady)
+        video.removeEventListener('playing', handlePlaybackReady)
+        video.removeEventListener('loadeddata', handleReady)
+        video.removeEventListener('canplay', handleReady)
+        video.removeEventListener('error', handleError)
+      }
     } else {
+      timedTransitionStartRef.current = null
       video.pause()
       const setHoldFrame = () => {
         const duration = Number.isFinite(video.duration) ? video.duration : 0
