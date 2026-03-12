@@ -1,29 +1,33 @@
 'use client'
 
 import type { PropsWithChildren } from 'react'
-import styles from '@/components/landing/LandingShell.module.css'
+import { GlassPanel } from '@/components/landing/ui/GlassPanel'
 import type { LandingSegmentTheme } from '@/lib/landing/scenes/sceneTypes'
+import type { LandingTierId } from '@/lib/landing/tier/tierTypes'
 import { cn } from '@/lib/utils'
 
 type LandingSurfaceProps = PropsWithChildren<{
   theme: LandingSegmentTheme
+  tier: LandingTierId
   className?: string
+  innerClassName?: string
 }>
-
-const THEME_CLASS: Record<LandingSegmentTheme, string> = {
-  dark: styles.surfaceDark,
-  soft: styles.surfaceSoft,
-  light: styles.surfaceLight,
-}
 
 export function LandingSurface({
   theme,
+  tier,
   className,
+  innerClassName,
   children,
 }: LandingSurfaceProps) {
   return (
-    <div className={cn(styles.surface, THEME_CLASS[theme], className)}>
-      <div className={styles.surfaceInner}>{children}</div>
-    </div>
+    <GlassPanel
+      tier={tier}
+      tone={theme}
+      className={className}
+      contentClassName={cn('p-[clamp(1.5rem,4vw,3rem)]', innerClassName)}
+    >
+      {children}
+    </GlassPanel>
   )
 }

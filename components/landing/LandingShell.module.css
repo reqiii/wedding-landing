@@ -23,6 +23,11 @@
   --landing-scroll-progress: 0;
   --landing-scene-progress: 0;
   --landing-segment-progress: 0;
+  --landing-layer-media: 1;
+  --landing-layer-continuity: 2;
+  --landing-layer-panel: 3;
+  --landing-layer-overlay: 4;
+  --landing-layer-controls: 5;
 }
 
 .scrollTrack {
@@ -40,11 +45,19 @@
   z-index: 2;
   height: 100dvh;
   overflow: hidden;
+  isolation: isolate;
 }
 
-.mediaLayer {
+.mediaPlane,
+.continuityLayer,
+.glassOverlayLayer,
+.controlsLayer {
   position: absolute;
   inset: 0;
+}
+
+.mediaPlane {
+  z-index: var(--landing-layer-media);
   background: #050816;
 }
 
@@ -57,10 +70,18 @@
 }
 
 .posterLayer {
+  z-index: 0;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  transform: scale(1.02);
+  opacity: calc(0.72 + (var(--landing-scene-progress) * 0.28));
+  transform: scale(calc(1.01 + ((1 - var(--landing-scene-progress)) * 0.03)));
+  will-change: transform, opacity;
+}
+
+.continuityLayer {
+  z-index: var(--landing-layer-continuity);
+  pointer-events: none;
 }
 
 .posterTint {
@@ -69,6 +90,8 @@
   background:
     linear-gradient(180deg, rgb(5 8 22 / 0.48), rgb(5 8 22 / 0.12) 32%, rgb(5 8 22 / 0.55)),
     radial-gradient(circle at center, transparent 0%, rgb(5 8 22 / 0.25) 100%);
+  opacity: calc(0.82 - (var(--landing-scene-progress) * 0.16));
+  will-change: opacity;
 }
 
 .mediaHost {
@@ -76,17 +99,24 @@
   transition: opacity 220ms ease;
   background: #050816;
   pointer-events: none;
+  will-change: opacity;
 }
 
 .mediaVisible {
   opacity: 1;
 }
 
+.panelLayer {
+  position: relative;
+  z-index: var(--landing-layer-panel);
+  height: 100%;
+}
+
 .panelStage {
   position: relative;
-  z-index: 3;
   display: flex;
   min-height: 100%;
+  height: 100%;
   align-items: center;
   justify-content: center;
   padding: clamp(1.5rem, 3vw, 3rem);
@@ -96,6 +126,7 @@
   position: relative;
   width: min(100%, 72rem);
   min-height: 70dvh;
+  contain: layout paint style;
 }
 
 .panelFrame {
@@ -108,82 +139,109 @@
   pointer-events: none;
   visibility: hidden;
   transition: opacity 220ms ease, transform 260ms ease;
-  transform: translate3d(0, 1.5rem, 0);
+  transform: translate3d(0, 1rem, 0);
 }
 
-.panelFrame[data-active='true'] {
+.panelFrame[data-residency='active'],
+.panelFrame[data-residency='nearby'] {
+  visibility: visible;
+}
+
+.panelFrame[data-residency='active'] {
   opacity: 1;
   pointer-events: auto;
-  visibility: visible;
   transform: translate3d(0, 0, 0);
 }
 
-.panelFrame[data-nearby='true'] {
-  visibility: visible;
+.panelFrame[data-residency='nearby'] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .panelMotion {
   --panel-progress: var(--landing-segment-progress, 0);
   width: 100%;
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 14vh), 0)
-    scale(calc(0.92 + (var(--panel-progress) * 0.08)));
-  transform-origin: bottom center;
-  will-change: transform;
+  opacity: calc(0.42 + (var(--panel-progress) * 0.58));
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 10vh), 0)
+    scale(calc(0.94 + (var(--panel-progress) * 0.06)));
+  transform-origin: center bottom;
+  will-change: transform, opacity;
+  transition: transform 260ms ease, opacity 220ms ease;
 }
 
-.panelFrame[data-active='true'] .panelMotion {
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 8vh), 0)
+.panelFrame[data-residency='active'] .panelMotion {
+  opacity: calc(0.78 + (var(--panel-progress) * 0.22));
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 7vh), 0)
     scale(calc(0.96 + (var(--panel-progress) * 0.04)));
+}
+
+.panelFrame[data-position='previous'] .panelMotion {
+  opacity: 0.16;
+  transform: translate3d(0, -3.5vh, 0) scale(0.965);
+}
+
+.panelFrame[data-position='next'] .panelMotion {
+  opacity: 0.08;
+  transform: translate3d(0, 6vh, 0) scale(0.94);
+}
+
+.panelFrame[data-motion='hero-lockup'][data-residency='active'] .panelMotion {
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 4vh), 0)
+    scale(calc(0.98 + (var(--panel-progress) * 0.02)));
 }
 
 .panelFrame[data-motion='ambient'] .panelMotion,
 .panelFrame[data-motion='soft-fade'] .panelMotion {
-  transform: none;
+  transform: scale(calc(0.985 + (var(--panel-progress) * 0.015)));
 }
 
-.surface {
+.panelFrame[data-motion='info-grid'][data-residency='active'] .panelMotion {
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 5vh), 0)
+    scale(calc(0.97 + (var(--panel-progress) * 0.03)));
+}
+
+.glassOverlayLayer {
+  z-index: var(--landing-layer-overlay);
+  pointer-events: none;
+  padding: clamp(1rem, 2vw, 1.5rem);
+}
+
+.stageGlassOverlay {
   width: 100%;
-  border: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: 1.75rem;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.08));
-  box-shadow:
-    0 24px 80px rgb(15 23 42 / 0.18),
-    inset 0 1px 0 rgb(255 255 255 / 0.32);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  height: 100%;
+  border-radius: clamp(1.5rem, 3vw, 2.5rem);
 }
 
-.surfaceLight {
-  color: #2c2c2c;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.88), rgb(255 255 255 / 0.68));
-  border-color: rgb(255 255 255 / 0.72);
+.controlsLayer {
+  z-index: var(--landing-layer-controls);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  pointer-events: none;
 }
 
-.surfaceSoft {
-  color: #2c2c2c;
-  background: linear-gradient(180deg, rgb(255 255 255 / 0.66), rgb(255 255 255 / 0.36));
-  border-color: rgb(255 255 255 / 0.42);
-}
-
-.surfaceDark {
-  color: #f8fafc;
-  background: linear-gradient(180deg, rgb(15 23 42 / 0.52), rgb(15 23 42 / 0.2));
-  border-color: rgb(255 255 255 / 0.14);
-}
-
-.surfaceInner {
-  padding: clamp(1.5rem, 4vw, 3rem);
+.stageControlsRail {
+  margin-left: auto;
+  width: min(16rem, 28vw);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.42), transparent);
+  opacity: calc(0.12 + (var(--landing-scroll-progress) * 0.22));
+  transform: translate3d(0, calc((1 - var(--landing-scene-progress)) * 0.75rem), 0);
+  will-change: transform, opacity;
 }
 
 .cue {
-  opacity: 0;
-  transform: translate3d(0, 1rem, 0);
+  --cue-progress: var(--landing-segment-progress, 0);
+  opacity: clamp(0, calc(var(--cue-progress) * 1.35), 1);
+  transform: translate3d(0, calc((1 - var(--cue-progress)) * 1rem), 0);
   transition: opacity 240ms ease, transform 280ms ease;
+  will-change: transform, opacity;
 }
 
-.panelFrame[data-active='true'] .cue {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
+.panelFrame[data-residency='nearby'] .cue {
+  opacity: 0;
+  transform: translate3d(0, 1rem, 0);
 }
 
 .preloader {
@@ -263,12 +321,26 @@
 @media (prefers-reduced-motion: reduce) {
   .panelFrame,
   .cue,
+  .posterLayer,
+  .posterTint,
+  .stageGlassOverlay,
+  .stageControlsRail,
   .preloader,
   .mediaHost {
     transition: none;
   }
 
   .panelMotion {
+    transform: none;
+    opacity: 1;
+  }
+
+  .panelFrame[data-position='previous'] .panelMotion,
+  .panelFrame[data-position='next'] .panelMotion,
+  .cue,
+  .posterLayer,
+  .posterTint,
+  .stageControlsRail {
     transform: none;
   }
 }

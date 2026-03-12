@@ -7,14 +7,19 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
   error?: string
   options: { value: string; label: string }[]
+  surface?: 'glass' | 'landing'
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function Select(
-  { label, error, options, className, id, ...props },
+  { label, error, options, className, id, surface = 'glass', ...props },
   ref
 ) {
   const autoId = useId()
   const selectId = id ?? autoId
+  const surfaceClassName =
+    surface === 'landing'
+      ? 'border border-white/45 bg-white/78 shadow-[0_8px_24px_rgba(15,23,42,0.08)] focus:border-light-orange/45 focus:bg-white/88'
+      : 'glass-base backdrop-blur-[15px] border border-white/20 focus:border-light-orange/50 focus:bg-white/20'
 
   return (
     <div className="w-full">
@@ -32,12 +37,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
         ref={ref}
         className={cn(
           'w-full px-4 py-3 rounded-medium',
-          'glass-base backdrop-blur-[15px]',
-          'border border-white/20',
+          surfaceClassName,
           'text-dark-gray',
           'focus-ring',
           'transition-all duration-200',
-          'focus:border-light-orange/50 focus:bg-white/20',
           'appearance-none bg-no-repeat bg-right',
           'bg-[url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\'%3E%3Cpath fill=\'%232C2C2C\' d=\'M6 9L1 4h10z\'/%3E%3C/svg%3E")] bg-[length:12px] pr-10',
           error && 'border-soft-rose',

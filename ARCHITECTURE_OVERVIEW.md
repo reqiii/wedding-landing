@@ -6,6 +6,7 @@ Phase 1 replaced the old component-driven landing foundation with a manifest-dri
 Phase 2 established the deterministic motion engine.
 Phase 3 adds the production media runtime that now integrates with that motion stack without moving playback control into React.
 Phase 4 adds a production reveal pipeline, staged warmup coordinator, and coarse preloader contract that only reveals the landing once the initial visual state is actually ready for the current tier.
+Phase 5 adds the stage-local visual runtime for lazy panel lifecycle, CSS-variable-driven choreography, tier-aware glass surfaces, and explicit visual layering.
 
 The active landing path is now:
 
@@ -91,9 +92,15 @@ The old `components/homepage` and `components/sections` stack is no longer the a
 - `LandingPreloader.tsx`
   Route-scoped staged preloader that reflects coarse reveal state, progress milestones, and poster fallback status.
 - `panels/LandingSurface.tsx`
-  Lightweight surface wrapper for panels.
+  Lightweight panel surface wrapper that now delegates to the landing-native glass runtime.
+- `panels/LandingPanelFrame.tsx`
+  Panel lifecycle wrapper that applies residency state, accessibility gating, and segment-local CSS variable wiring.
 - `panels/panelRegistry.tsx`
-  Panel registry that maps declarative `panelKey` values to UI components.
+  Lazy panel registry that maps declarative `panelKey` values to on-demand UI modules.
+- `panels/*.tsx`
+  Route-local panel modules split by panel key so only nearby panels load their heavy UI.
+- `ui/GlassPanel.tsx`
+  Tier-aware landing glass primitives for panel surfaces, supporting cards, and decorative overlays.
 
 ## Data Flow
 
@@ -539,11 +546,64 @@ Removed stacks:
 
 The shared `components/ui/Glass.tsx` component has also been detached from the old landing runtime provider so shared UI no longer imports legacy landing context.
 
+## Phase 5 Implementation Report
+
+### Visual Runtime Architecture
+
+Phase 5 keeps `motionSystem.ts` as the only animation driver and `mediaController.ts` as the only media owner, but adds a stage-local visual runtime on top of those systems. `LandingStage.tsx` now composes explicit visual planes for media, continuity, panels, decorative glass overlay, and UI controls while continuing to read only coarse runtime snapshots from `runtimeStore.ts`.
+
+The visual layer consumes:
+
+- boundary-level store state such as active segment, tier snapshot, and performance budget
+- motion-owned CSS variables such as `--landing-scene-progress` and `--landing-segment-progress`
+- scene-root datasets written by `motionSystem.ts`
+
+This keeps React outside the hot path while still allowing richer visual choreography.
+
+### Panel Lifecycle Model
+
+Panel lifecycle is now formalized around a near-active residency window:
+
+- only the active segment and its immediate neighbors are mounted
+- panel modules are lazy-loaded through `panels/panelRegistry.tsx`
+- `LandingPanelFrame.tsx` maps each mounted panel into `active` or `nearby` residency
+- nearby panels are marked `inert` and `aria-hidden` so hidden interactive UI is not keyboard-focusable
+- distant panels are fully unmounted to keep DOM size controlled
+
+This is especially important for the RSVP panel, which now mounts only when it enters the active-neighbor window.
+
+### Scene Choreography Model
+
+Landing choreography is now fully CSS-variable-driven inside `LandingShell.module.css`. The motion runtime writes scene and segment progress values, and the stage consumes them for:
+
+- panel opacity fades
+- translate and scale continuity
+- cue entrance timing
+- poster continuity
+- decorative overlay drift
+
+Animated properties remain restricted to `transform` and `opacity`, so the visual runtime avoids layout thrashing and forced reflow work.
+
+### Glass UI Performance Strategy
+
+Phase 5 adds landing-native `GlassPanel`, `GlassCard`, and `GlassOverlay` primitives in `components/landing/ui/GlassPanel.tsx`. The baseline path now uses a single glass surface instead of the older layered refraction stack, and landing form controls no longer stack panel blur with field blur.
+
+The RSVP path now uses lighter translucent field surfaces through `Input.tsx` and `Select.tsx` so the landing can preserve readability without creating nested backdrop-filter cost.
+
+### Tier-Specific Visual Behavior
+
+The visual runtime follows the existing tier rules from `tierPolicies.ts`:
+
+- `tier-3-premium`: strongest blur, richer highlight overlay, premium polish enabled
+- `tier-2-balanced`: reduced blur and simpler overlay treatment
+- `tier-1-hold`: light translucency with no blur stacking
+- `tier-0-poster`: flat or near-flat readable UI with blur removed
+
+Reduced motion remains route-scoped and conservative. Cinematic transitions and glass intensity step down automatically when `prefers-reduced-motion` is active so readability stays intact even when motion polish is reduced.
+
 ## Remaining Integration Points
 
 These are intentionally left for later phases:
 
-- richer scroll choreography and tighter scene windowing
-- replacing old RSVP input surfaces with a lighter landing-native control system
 - complete retirement or deletion of old delivery APIs and other phase 0 leftovers
-- final glass system rebuild and premium-only polish
+- optional premium-only HUD affordances beyond the current stage layering shell

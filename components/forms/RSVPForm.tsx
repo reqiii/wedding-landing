@@ -8,7 +8,11 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 
-export function RSVPForm() {
+type RSVPFormProps = {
+  controlSurface?: 'glass' | 'landing'
+}
+
+export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
@@ -49,7 +53,7 @@ export function RSVPForm() {
 
   if (submitStatus === 'success') {
     return (
-      <div className="text-center space-y-4">
+      <div className="space-y-4 text-center" role="status" aria-live="polite">
         <div className="text-3xl">✨</div>
         <h3 className="font-display text-2xl text-dark-gray">Спасибо!</h3>
         <p className="text-medium-gray">
@@ -82,6 +86,7 @@ export function RSVPForm() {
         {...register('attendance')}
         error={errors.attendance?.message}
         required
+        surface={controlSurface}
         options={[
           { value: '', label: 'Выберите вариант' },
           { value: 'attending', label: 'Буду' },
@@ -95,6 +100,7 @@ export function RSVPForm() {
         {...register('names')}
         error={errors.names?.message}
         required
+        surface={controlSurface}
         autoComplete="name"
         placeholder="Если вы будете парой или семьей, укажите всех"
       />
@@ -104,6 +110,7 @@ export function RSVPForm() {
         {...register('transfer')}
         error={errors.transfer?.message}
         required
+        surface={controlSurface}
         options={[
           { value: '', label: 'Выберите вариант' },
           { value: 'required', label: 'Потребуется' },
@@ -112,7 +119,7 @@ export function RSVPForm() {
       />
 
       {submitStatus === 'error' && (
-        <p className="text-soft-rose text-sm" role="alert">
+        <p className="text-soft-rose text-sm" role="alert" aria-live="polite">
           Что-то пошло не так. Пожалуйста, попробуйте еще раз.
         </p>
       )}
