@@ -10,7 +10,7 @@ export type LandingBootstrap = {
   store: LandingRuntimeStore
   initialize: () => Promise<void>
   mountScene: (sceneRoot: HTMLElement) => () => void
-  attachVideoElement: (videoElement: HTMLVideoElement | null) => () => void
+  attachMediaHost: (mediaHost: HTMLElement | null) => () => void
   destroy: () => void
 }
 
@@ -64,8 +64,8 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
     mountScene(sceneRoot) {
       return motionSystem.mount(sceneRoot)
     },
-    attachVideoElement(videoElement) {
-      return mediaController.attachVideoElement(videoElement)
+    attachMediaHost(mediaHost) {
+      return mediaController.attachMediaHost(mediaHost)
     },
     destroy() {
       motionSystem.destroy()

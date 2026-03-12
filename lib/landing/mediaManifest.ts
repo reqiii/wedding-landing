@@ -118,3 +118,11 @@ export function getLandingAssetSource(assetId: LandingAssetId, deviceProfile: La
 export function getLandingPosterSource(assetId: LandingAssetId, deviceProfile: LandingDeviceProfile) {
   return getLandingAssetDefinition(assetId).posterSources?.[deviceProfile]
 }
+
+export function resolveLandingMediaSource(assetId: LandingAssetId, deviceProfile: LandingDeviceProfile) {
+  return getLandingAssetSource(assetId, deviceProfile)
+}
+
+export function resolveLandingPosterSource(assetId: LandingAssetId, deviceProfile: LandingDeviceProfile) {
+  return getLandingPosterSource(assetId, deviceProfile) ?? getLandingAssetSource(assetId, deviceProfile)
+}

@@ -2,7 +2,9 @@
 
 ## Goal
 
-Phase 1 replaces the old component-driven landing foundation with a manifest-driven runtime skeleton.
+Phase 1 replaced the old component-driven landing foundation with a manifest-driven runtime skeleton.
+Phase 2 established the deterministic motion engine.
+Phase 3 adds the production media runtime that now integrates with that motion stack without moving playback control into React.
 
 The active landing path is now:
 
@@ -45,14 +47,18 @@ The old `components/homepage` and `components/sections` stack is no longer the a
 
 ### `lib/landing/media`
 
-- `mediaManifest.ts`
-  Adapter around the existing asset inventory. It keeps the old media catalog as the source for raw URLs while moving orchestration into the new pipeline.
+- `assetRegistry.ts`
+  Resolves manifest asset ids into concrete desktop/mobile media records, effective media modes, preload targets, and warmup targets.
 - `mediaPolicy.ts`
-  Resolves effective media behavior per tier and produces preload requests from the manifest.
+  Resolves effective media behavior per tier, preload targets, standby eligibility, and scrub throttling settings.
+- `mediaPool.ts`
+  Manages active and standby video planes so the controller can reuse media elements and limit decoder churn.
 - `readinessMachine.ts`
-  Explicit readiness state transitions and target checks.
+  Explicit readiness state transitions, comparisons, and unlock checks.
 - `mediaController.ts`
-  Central media pipeline for one active video surface, poster fallback, critical preload, and segment-driven playback updates.
+  Central media pipeline for critical preload, incremental warmup, pooled video lifecycle ownership, poster fallback, and deterministic segment-driven playback updates.
+- `mediaManifest.ts`
+  Legacy adapter around the canonical asset inventory retained for compatibility during the rebuild.
 
 ### `lib/landing/runtime`
 
@@ -76,7 +82,7 @@ The old `components/homepage` and `components/sections` stack is no longer the a
 - `LandingScene.tsx`
   Mounts the scroll scene root and attaches the stage to the runtime bootstrap.
 - `LandingStage.tsx`
-  Renders the sticky media layer and consumes coarse runtime snapshots. Panel residency is driven by `motionPolicy.mountStrategy`.
+  Renders the sticky poster layer plus a passive media host while consuming coarse runtime snapshots. Panel residency is driven by `motionPolicy.mountStrategy`.
 - `LandingPreloader.tsx`
   Minimal route-scoped preloader for phase 1.
 - `panels/LandingSurface.tsx`
@@ -98,6 +104,8 @@ flowchart TD
   MotionSystem --> LayoutCache
   MotionSystem --> CssVars
   MotionSystem --> MediaController
+  MediaController --> AssetRegistry
+  MediaController --> MediaPool
   MediaController --> ReadinessMachine
   MediaController --> RuntimeStore
   SceneManifest --> LandingBootstrap
@@ -114,8 +122,10 @@ Bootstrap now lives in `lib/landing/runtime/landingBootstrap.ts` and runs in thi
 2. resolve the tier snapshot through `tierResolver.ts`
 3. map the tier into `mediaPolicy`, `motionPolicy`, and `performanceBudget`
 4. write the coarse runtime snapshot into the store
-5. prime critical media through `mediaController.ts`
-6. mount the scene and attach the single motion system
+5. resolve the initial manifest segment and activate it inside the media controller
+6. prime critical media through `mediaController.ts`
+7. queue adjacent warmups for the initial reveal
+8. mount the scene and attach the motion system plus passive media host
 
 The shell triggers bootstrap initialization, but the bootstrap owns subsystem setup.
 
@@ -214,14 +224,60 @@ The media controller is the new single media orchestrator for the landing stage.
 
 Responsibilities:
 
-- select the effective media mode from tier policy
-- keep a stable active asset identity
-- avoid resetting `video.src` unless the source actually changes
-- preload critical assets from manifest hints
-- warm adjacent assets from manifest warmup hints
-- report explicit readiness states
+- own all `HTMLMediaElement` instances
+- resolve the effective media mode from tier policy and manifest metadata
+- keep a stable active asset identity and poster identity
+- avoid resetting `video.src` unless the resolved asset actually changes
+- preload critical assets from manifest hints and unlock only when required readiness is satisfied
+- warm adjacent and deferred assets incrementally under budget limits
+- reuse active and standby video planes through `mediaPool.ts`
+- report explicit readiness states and degrade to hold or poster on failure
 
 The landing shell no longer decides when media warms; warmup decisions are executed inside the runtime/motion/media stack.
+
+## Media Runtime Architecture
+
+```mermaid
+flowchart TD
+  SceneManifest --> AssetRegistry
+  SceneManifest --> MediaController
+  TierPolicies --> MediaPolicy
+  MediaPolicy --> MediaController
+  AssetRegistry --> MediaController
+  MediaController --> MediaPool
+  MediaController --> ReadinessMachine
+  MotionSystem -->|"activateScene / setActiveSegment / syncSegmentProgress"| MediaController
+  MediaController --> RuntimeStore
+  LandingStage -->|"passive host only"| MediaController
+```
+
+`mediaController.ts` is now the only runtime owner of media elements and playback state. React renders a passive host container in `LandingStage.tsx`, but the controller creates, mounts, reuses, and tears down video nodes independently from the React lifecycle.
+
+`assetRegistry.ts` is the bridge from `sceneManifest.ts` to concrete media delivery. It resolves:
+
+- active asset id
+- poster asset id
+- effective media mode after tier rules
+- preload target readiness
+- warmup targets
+- concrete desktop/mobile sources from `lib/landing/mediaManifest.ts`
+
+`mediaPool.ts` maintains a small number of reusable video planes:
+
+- one active plane for the currently visible cinematic asset
+- an optional standby plane for near-future warmups on higher tiers
+- bounded reuse based on `standbyPoolSize` and `maxActiveVideos`
+
+`readinessMachine.ts` remains the canonical readiness ladder:
+
+- `idle`
+- `poster-ready`
+- `metadata-ready`
+- `first-frame-ready`
+- `playable`
+- `failed`
+
+Bootstrap and preloader logic now rely on these explicit states instead of incidental component timing.
 
 ## Tier Resolution Flow
 
@@ -238,13 +294,93 @@ Tier resolution is independent from React:
 Media orchestration now flows like this:
 
 1. `sceneManifest.ts` declares asset ids, media modes, preload hints, and warmup hints
-2. `mediaPolicy.ts` resolves effective media behavior for the current tier
-3. `motionSystem.ts` activates scenes and segments and forwards tier-approved scrub progress without touching media elements directly
-4. `mediaController.ts` chooses poster vs video behavior and keeps the active media identity stable
-5. `readinessMachine.ts` upgrades readiness state explicitly
-6. `LandingStage.tsx` only reflects the current media snapshot from the store
+2. `assetRegistry.ts` resolves the manifest requirements into concrete asset records for the current device profile
+3. `mediaPolicy.ts` resolves effective media behavior for the current tier, including scrub throttling and warmup targets
+4. `motionSystem.ts` activates scenes and segments and forwards tier-approved scrub progress without touching media elements directly
+5. `mediaController.ts` selects the active asset, manages pool reuse, schedules preload work, and drives fallback behavior
+6. `readinessMachine.ts` upgrades readiness state explicitly and guards bootstrap unlock
+7. `LandingStage.tsx` only reflects the coarse media snapshot from the store while hosting controller-owned media nodes
 
-Phase 2 still leaves room for future work such as standby pools, deeper asset reuse guarantees, and stricter failure UI.
+## Asset Lifecycle
+
+Every cinematic asset now follows this lifecycle:
+
+1. manifest declaration through `sceneManifest.ts`
+2. asset resolution in `assetRegistry.ts`
+3. critical, warmup, or deferred preload scheduling in `mediaController.ts`
+4. readiness promotion through `readinessMachine.ts`
+5. active or standby plane assignment in `mediaPool.ts`
+6. playback mode application in `mediaController.ts`
+7. downgrade to hold or poster if decode, autoplay, or network behavior is not acceptable
+
+The preloader now unlocks only when the critical asset set required by the current tier satisfies `readiness.unlockTarget`. On premium and balanced tiers that means first-frame readiness; lower tiers use the stricter fallback target defined by tier policy.
+
+## Scrub Synchronization Model
+
+Scrub playback remains delegated from the motion engine through:
+
+- `activateScene(sceneId)`
+- `setActiveSegment(segment)`
+- `syncSegmentProgress(sceneId, progress)`
+
+The motion system still owns all scroll activation and progress math. The media controller only consumes those signals and applies them to the active plane.
+
+Scrub safeguards now include:
+
+- progress epsilon checks before accepting a new scrub target
+- minimum seek intervals per tier
+- current-time epsilon checks before mutating the media element
+- `requestVideoFrameCallback` pacing when available
+- decode-lag detection with fallback to `hold`
+- poster fallback on hard media failure
+
+This keeps scroll scrubbing deterministic while preventing seek storms on mid-tier devices.
+
+## Tier Media Behavior
+
+The media runtime now follows these tier rules:
+
+- `tier-3-premium`: full scrub, first-frame critical unlock, active plus standby pool, aggressive warmup
+- `tier-2-balanced`: scrub with stronger throttling, first-frame critical unlock, single active plane, adjacent warmup
+- `tier-1-hold`: no scrub, hold-mode video, metadata readiness target, no standby pool
+- `tier-0-poster`: poster-only rendering, poster readiness target, no video planes, no warmup
+
+Tier policy still lives in `tierPolicies.ts`, but Phase 3 now enforces more of those constraints in the live media runtime rather than treating them as declarative only.
+
+## Performance Safeguards
+
+The Phase 3 media runtime is designed to stay off the React hot path and protect decode/network budgets:
+
+- React no longer owns or controls the landing video nodes
+- source changes are skipped when the resolved asset is unchanged
+- active and standby planes are reused instead of recreated during scroll
+- preload work is bounded by `maxConcurrentPreloads`
+- active media residency is bounded by `maxActiveVideos`
+- warmups are incremental and triggered from runtime boundaries rather than from component renders
+- scrub seeks are throttled and coalesced before writing `currentTime`
+- fallback to hold/poster prevents unstable decode loops from stalling the scene runtime
+
+## Phase 3 Implementation Report
+
+### Media Runtime Architecture
+
+Phase 3 keeps `motionSystem.ts` as the sole animation owner and inserts a stronger media runtime behind the existing controller contract. `mediaController.ts` now coordinates `assetRegistry.ts`, `mediaPool.ts`, `mediaPolicy.ts`, and `readinessMachine.ts` while `LandingStage.tsx` only supplies a passive host container.
+
+### Media Lifecycle
+
+Assets start in the manifest, resolve to device-specific media records, advance through explicit readiness states, and are then mounted onto active or standby pooled planes. On activation they enter loop, hold, scrub, or poster mode depending on tier and manifest rules. On failure they degrade to poster mode instead of forcing React or motion to compensate.
+
+### Scrub Synchronization
+
+Scroll progress still originates exclusively from `motionSystem.ts`. The media controller coalesces those progress updates, ignores tiny deltas, limits seek cadence, and uses `requestVideoFrameCallback` when available so decode progress can keep up with scrolling. If decode lag becomes unstable, the runtime falls back to hold mode for the active segment.
+
+### Tier Behavior
+
+Premium tiers keep full scrub behavior and optional standby warmups. Balanced tiers keep scrub but under tighter seek/decode budgets. Hold tiers preserve cinematic video without frame-linked scrubbing. Poster tiers avoid video entirely and still satisfy the manifest and preloader pipeline deterministically.
+
+### Performance Safeguards
+
+The runtime avoids unnecessary allocations, DOM churn, and repeated video reloads by reusing pooled planes, gating preloads by concurrency, and skipping meaningless media writes. This keeps the landing deterministic across device tiers without reintroducing React into the animation or media hot path.
 
 ## Tier System
 
@@ -295,8 +431,6 @@ The shared `components/ui/Glass.tsx` component has also been detached from the o
 These are intentionally left for later phases:
 
 - richer scroll choreography and tighter scene windowing
-- standby media pool and stronger reuse across adjacent shared assets
-- tier-approved unlock rules based on stricter first-frame guarantees
 - replacing old RSVP input surfaces with a lighter landing-native control system
 - complete retirement or deletion of old delivery APIs and other phase 0 leftovers
 - final glass system rebuild and premium-only polish

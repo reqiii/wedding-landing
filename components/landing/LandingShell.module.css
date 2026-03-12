@@ -49,7 +49,7 @@
 }
 
 .posterLayer,
-.videoLayer {
+.mediaHost {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -71,14 +71,14 @@
     radial-gradient(circle at center, transparent 0%, rgb(5 8 22 / 0.25) 100%);
 }
 
-.videoLayer {
-  object-fit: cover;
+.mediaHost {
   opacity: 0;
   transition: opacity 220ms ease;
   background: #050816;
+  pointer-events: none;
 }
 
-.videoVisible {
+.mediaVisible {
   opacity: 1;
 }
 
@@ -235,7 +235,7 @@
   .panelFrame,
   .cue,
   .preloader,
-  .videoLayer {
+  .mediaHost {
     transition: none;
   }
 

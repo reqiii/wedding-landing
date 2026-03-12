@@ -1,6 +1,5 @@
 'use client'
 
-import type { RefObject } from 'react'
 import styles from '@/components/landing/LandingShell.module.css'
 import { getLandingPanelComponent } from '@/components/landing/panels/panelRegistry'
 import { getVisibleLandingSegments } from '@/lib/landing/scenes/sceneSelectors'
@@ -10,13 +9,13 @@ import { useLandingRuntimeSelector, type LandingRuntimeStore } from '@/lib/landi
 type LandingStageProps = {
   manifest: LandingSceneManifest
   store: LandingRuntimeStore
-  videoRef: RefObject<HTMLVideoElement>
+  mediaHostRef: (element: HTMLDivElement | null) => void
 }
 
 export function LandingStage({
   manifest,
   store,
-  videoRef,
+  mediaHostRef,
 }: LandingStageProps) {
   const activeSegmentId = useLandingRuntimeSelector(store, (state) => state.motion.activeSegmentId)
   const media = useLandingRuntimeSelector(store, (state) => state.media)
@@ -45,15 +44,16 @@ export function LandingStage({
           }
         />
         <div className={styles.posterTint} aria-hidden="true" />
-        <video
-          ref={videoRef}
-          className={`${styles.videoLayer} ${
+        <div
+          ref={mediaHostRef}
+          className={`${styles.mediaHost} ${
             media.activeMode !== 'poster' && readiness !== 'idle' && readiness !== 'failed'
-              ? styles.videoVisible
+              ? styles.mediaVisible
               : ''
           }`}
-          muted
-          playsInline
+          data-media-mode={media.activeMode}
+          data-asset-ready={readiness}
+          aria-hidden="true"
         />
       </div>
 

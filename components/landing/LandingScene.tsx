@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import styles from '@/components/landing/LandingShell.module.css'
 import { LandingStage } from '@/components/landing/LandingStage'
 import type { LandingBootstrap } from '@/lib/landing/runtime/landingBootstrap'
@@ -16,7 +16,10 @@ export function LandingScene({
   manifest,
 }: LandingSceneProps) {
   const sceneRootRef = useRef<HTMLDivElement | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
+  const mediaHostRef = useRef<HTMLDivElement | null>(null)
+  const setMediaHostRef = useCallback((element: HTMLDivElement | null) => {
+    mediaHostRef.current = element
+  }, [])
 
   useEffect(() => {
     const sceneRoot = sceneRootRef.current
@@ -31,7 +34,7 @@ export function LandingScene({
   }, [bootstrap])
 
   useEffect(() => {
-    return bootstrap.attachVideoElement(videoRef.current)
+    return bootstrap.attachMediaHost(mediaHostRef.current)
   }, [bootstrap])
 
   return (
@@ -46,7 +49,7 @@ export function LandingScene({
           />
         ))}
       </div>
-      <LandingStage manifest={manifest} store={bootstrap.store} videoRef={videoRef} />
+      <LandingStage manifest={manifest} store={bootstrap.store} mediaHostRef={setMediaHostRef} />
     </section>
   )
 }

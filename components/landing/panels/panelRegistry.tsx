@@ -6,7 +6,7 @@ import styles from '@/components/landing/LandingShell.module.css'
 import { LandingSurface } from '@/components/landing/panels/LandingSurface'
 import type { LandingPanelKey } from '@/lib/landing/core/contracts'
 import type { LandingSegmentConfig } from '@/lib/landing/scenes/sceneTypes'
-import { resolveLandingPosterSource } from '@/lib/landing/media/mediaManifest'
+import { resolveLandingPosterSource } from '@/lib/landing/mediaManifest'
 import { cn } from '@/lib/utils'
 
 type LandingPanelComponentProps = {
