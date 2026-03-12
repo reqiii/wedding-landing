@@ -108,6 +108,51 @@ export function getCriticalMediaRequests(
     })
 }
 
+export function getInitialRevealMediaRequests(
+  manifest: LandingSceneManifest,
+  policy: LandingMediaPolicy
+) {
+  const initialSegment = manifest.segments[0]
+  if (!initialSegment) {
+    return []
+  }
+
+  const requests: LandingMediaPreloadRequest[] = []
+  const appendRequest = (
+    assetId: LandingMediaPreloadRequest['assetId'],
+    targetReadiness: LandingReadyTarget,
+    priority: LandingMediaPreloadRequest['priority']
+  ) => {
+    const existing = requests.find((request) => request.assetId === assetId)
+    if (existing) {
+      existing.targetReadiness = maxReadinessTarget(existing.targetReadiness, targetReadiness)
+      return
+    }
+
+    requests.push({
+      assetId,
+      targetReadiness,
+      priority,
+    })
+  }
+
+  const segmentRequest = getSegmentPreloadRequest(initialSegment, policy)
+  if (segmentRequest) {
+    appendRequest(
+      segmentRequest.assetId,
+      maxReadinessTarget(segmentRequest.targetReadiness, policy.initialReadinessTarget),
+      'critical'
+    )
+  }
+
+  const posterAssetId = initialSegment.media.posterAssetId ?? initialSegment.media.assetId
+  if (posterAssetId) {
+    appendRequest(posterAssetId, 'poster-ready', 'critical')
+  }
+
+  return requests
+}
+
 export function getDeferredMediaRequests(
   manifest: LandingSceneManifest,
   policy: LandingMediaPolicy

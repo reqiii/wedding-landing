@@ -5,6 +5,7 @@
 Phase 1 replaced the old component-driven landing foundation with a manifest-driven runtime skeleton.
 Phase 2 established the deterministic motion engine.
 Phase 3 adds the production media runtime that now integrates with that motion stack without moving playback control into React.
+Phase 4 adds a production reveal pipeline, staged warmup coordinator, and coarse preloader contract that only reveals the landing once the initial visual state is actually ready for the current tier.
 
 The active landing path is now:
 
@@ -72,8 +73,12 @@ The old `components/homepage` and `components/sections` stack is no longer the a
   Pure scene measurement/progress helper layer retained for non-owning runtime math reuse.
 - `motionSystem.ts`
   The single production motion runtime. It owns passive scroll scheduling, `requestAnimationFrame`, resize invalidation, hysteresis-protected segment activation, CSS variable writes, and delegated media synchronization.
+- `revealController.ts`
+  Coarse reveal state machine that waits for tier resolution, motion readiness, critical asset readiness, and bootstrap completion before allowing the shell to reveal.
+- `warmupCoordinator.ts`
+  Staged warmup orchestrator for critical, near-future, and background assets. It keeps scheduling policy in the runtime layer while delegating actual preload ownership to `mediaController.ts`.
 - `landingBootstrap.ts`
-  Bootstraps tier resolution, policy setup, critical media priming, motion mounting, and stage attachment.
+  Bootstraps tier resolution, policy setup, reveal orchestration, and initial warmup sequencing.
 
 ### `components/landing`
 
@@ -84,7 +89,7 @@ The old `components/homepage` and `components/sections` stack is no longer the a
 - `LandingStage.tsx`
   Renders the sticky poster layer plus a passive media host while consuming coarse runtime snapshots. Panel residency is driven by `motionPolicy.mountStrategy`.
 - `LandingPreloader.tsx`
-  Minimal route-scoped preloader for phase 1.
+  Route-scoped staged preloader that reflects coarse reveal state, progress milestones, and poster fallback status.
 - `panels/LandingSurface.tsx`
   Lightweight surface wrapper for panels.
 - `panels/panelRegistry.tsx`
@@ -96,22 +101,30 @@ The old `components/homepage` and `components/sections` stack is no longer the a
 flowchart TD
   AppPage["app/page.tsx"] --> LandingShell
   LandingShell --> LandingBootstrap
+  LandingShell --> LandingPreloader
   LandingBootstrap --> TierResolver
   TierResolver --> TierPolicies
+  LandingBootstrap --> RevealController
+  LandingBootstrap --> WarmupCoordinator
   TierPolicies --> RuntimeStore
   LandingShell --> LandingScene
   LandingScene --> MotionSystem
   MotionSystem --> LayoutCache
   MotionSystem --> CssVars
   MotionSystem --> MediaController
+  MotionSystem --> WarmupCoordinator
   MediaController --> AssetRegistry
   MediaController --> MediaPool
   MediaController --> ReadinessMachine
   MediaController --> RuntimeStore
+  RevealController --> RuntimeStore
+  WarmupCoordinator --> MediaController
+  WarmupCoordinator --> RuntimeStore
   SceneManifest --> LandingBootstrap
   SceneManifest --> LandingScene
   PanelRegistry --> LandingStage
   RuntimeStore --> LandingStage
+  RuntimeStore --> LandingPreloader
 ```
 
 ## Landing Bootstrap Process
@@ -119,15 +132,19 @@ flowchart TD
 Bootstrap now lives in `lib/landing/runtime/landingBootstrap.ts` and runs in this order:
 
 1. create the external runtime store
-2. resolve the tier snapshot through `tierResolver.ts`
-3. map the tier into `mediaPolicy`, `motionPolicy`, and `performanceBudget`
-4. write the coarse runtime snapshot into the store
-5. resolve the initial manifest segment and activate it inside the media controller
-6. prime critical media through `mediaController.ts`
-7. queue adjacent warmups for the initial reveal
-8. mount the scene and attach the motion system plus passive media host
+2. create `mediaController.ts`, `revealController.ts`, and `warmupCoordinator.ts`
+3. start reveal initialization in the coarse runtime store
+4. resolve the tier snapshot through `tierResolver.ts`
+5. map the tier into `mediaPolicy`, `motionPolicy`, and `performanceBudget`
+6. write the coarse runtime snapshot into the store
+7. resolve the initial manifest segment and activate it inside the media controller
+8. define the reveal-critical asset set for the first segment
+9. load those reveal-critical assets through `warmupCoordinator.ts`
+10. wait for motion readiness, tier resolution, bootstrap completion, and critical asset readiness
+11. move the reveal state from `critical-loading` to `ready-to-reveal` to `revealed`
+12. schedule near-future and background warmups after the initial reveal is safe
 
-The shell triggers bootstrap initialization, but the bootstrap owns subsystem setup.
+The shell still triggers bootstrap initialization, but the bootstrap now owns the reveal handoff instead of equating media preload completion with shell visibility.
 
 ## Scene Manifest Contract
 
@@ -158,7 +175,21 @@ The external runtime store keeps only coarse-grained state:
 - `performanceBudget`
 - `mediaPolicy`
 - `motionPolicy`
-- `readiness`
+- `readiness.bootstrap`
+- `readiness.bootstrapPhase`
+- `readiness.revealState`
+- `readiness.unlockTarget`
+- `readiness.criticalReadyState`
+- `readiness.activeAssetReadyState`
+- `readiness.motionReady`
+- `readiness.tierResolved`
+- `readiness.fallbackMode`
+- `preloader.stage`
+- `preloader.progress`
+- `warmup.stage`
+- `warmup.critical`
+- `warmup.nearFuture`
+- `warmup.background`
 - `motion.activeSceneId`
 - `motion.activeSegmentId`
 - `media.activeAssetId`
@@ -167,6 +198,7 @@ The external runtime store keeps only coarse-grained state:
 
 Hot path motion and media updates stay imperative inside the motion and media systems instead of flowing through React context.
 React subscribes through `useSyncExternalStore` selectors and does not receive frame telemetry state, live document progress, or per-segment motion progress.
+The preloader and shell only observe coarse reveal milestones, so React remains outside the animation and decode hot paths.
 
 ## Motion System
 
@@ -279,6 +311,71 @@ flowchart TD
 
 Bootstrap and preloader logic now rely on these explicit states instead of incidental component timing.
 
+## Reveal Pipeline
+
+Phase 4 adds a dedicated reveal controller instead of letting binary bootstrap readiness hide or show the shell directly.
+
+The reveal contract is:
+
+1. tier must be resolved
+2. motion must mount and write its initial boundary state
+3. runtime bootstrap must finish initializing policies and initial media activation
+4. reveal-critical assets for the first segment must satisfy the tier-specific unlock target
+5. if that readiness cannot be reached safely, the runtime must downgrade to poster fallback before reveal
+
+The reveal state machine is:
+
+- `boot`
+- `initializing`
+- `critical-loading`
+- `ready-to-reveal`
+- `revealed`
+- `failed`
+
+`revealController.ts` keeps those transitions coarse and deterministic. It watches the store, derives aggregate critical readiness, detects stalled critical loading, and only advances the shell once the required first-scene visual state is ready.
+
+## Preloader Contract
+
+`LandingPreloader.tsx` remains route-scoped inside `LandingShell.tsx`, but it now reflects coarse reveal state instead of a binary `ready` flag.
+
+The preloader reads:
+
+- `readiness.revealState`
+- `readiness.fallbackMode`
+- `readiness.unlockTarget`
+- `preloader.stage`
+- `preloader.progress`
+
+Progress is milestone-based rather than timer-based:
+
+- tier resolution contributes the first milestone
+- motion readiness contributes the next milestone
+- bootstrap completion contributes another coarse step
+- critical asset readiness advances progress according to the current tier target
+- the reveal handoff contributes the final transition to `revealed`
+
+The scene still mounts behind the preloader overlay, so the handoff is a fade-out rather than a conditional React mount.
+
+## Warmup Strategy
+
+Phase 4 moves warmup sequencing into `warmupCoordinator.ts`.
+
+Warmup stages are:
+
+- `critical-assets`
+- `near-future-assets`
+- `background-assets`
+
+Responsibilities:
+
+- define reveal-critical requests from the first manifest segment plus tier policy
+- warm after-critical and on-enter targets from manifest `warmupHint.when`
+- schedule background requests after near-future warmup is queued
+- keep only coarse warmup bucket summaries in the runtime store
+- leave actual media element and preload ownership inside `mediaController.ts`
+
+This closes the earlier gap where `warmupHint.when` existed in the manifest but the runtime always treated warmups as generic bootstrap or boundary side effects.
+
 ## Tier Resolution Flow
 
 Tier resolution is independent from React:
@@ -307,13 +404,13 @@ Every cinematic asset now follows this lifecycle:
 
 1. manifest declaration through `sceneManifest.ts`
 2. asset resolution in `assetRegistry.ts`
-3. critical, warmup, or deferred preload scheduling in `mediaController.ts`
+3. reveal-critical, near-future, or background scheduling in `warmupCoordinator.ts`
 4. readiness promotion through `readinessMachine.ts`
 5. active or standby plane assignment in `mediaPool.ts`
 6. playback mode application in `mediaController.ts`
 7. downgrade to hold or poster if decode, autoplay, or network behavior is not acceptable
 
-The preloader now unlocks only when the critical asset set required by the current tier satisfies `readiness.unlockTarget`. On premium and balanced tiers that means first-frame readiness; lower tiers use the stricter fallback target defined by tier policy.
+The preloader now unlocks only when the reveal-critical asset set for the first segment satisfies `readiness.unlockTarget`. On premium and balanced tiers that means first-frame readiness; lower tiers can reveal safely at metadata or poster readiness according to `tierPolicies.ts`.
 
 ## Scrub Synchronization Model
 
@@ -340,47 +437,63 @@ This keeps scroll scrubbing deterministic while preventing seek storms on mid-ti
 
 The media runtime now follows these tier rules:
 
-- `tier-3-premium`: full scrub, first-frame critical unlock, active plus standby pool, aggressive warmup
-- `tier-2-balanced`: scrub with stronger throttling, first-frame critical unlock, single active plane, adjacent warmup
-- `tier-1-hold`: no scrub, hold-mode video, metadata readiness target, no standby pool
-- `tier-0-poster`: poster-only rendering, poster readiness target, no video planes, no warmup
+- `tier-3-premium`: full scrub, first-frame reveal unlock, active plus standby pool, aggressive warmup
+- `tier-2-balanced`: scrub with stronger throttling, first-frame reveal unlock, single active plane, adjacent warmup
+- `tier-1-hold`: no scrub, hold-mode video, metadata reveal unlock, no standby pool
+- `tier-0-poster`: poster-only rendering, poster reveal unlock, no video planes, no warmup
 
-Tier policy still lives in `tierPolicies.ts`, but Phase 3 now enforces more of those constraints in the live media runtime rather than treating them as declarative only.
+Tier policy still lives in `tierPolicies.ts`, but Phase 4 now applies those constraints directly to reveal and warmup behavior instead of using them only for media mode selection.
+
+## Failure And Recovery
+
+Failure handling now stays deterministic and route-scoped:
+
+- decode, autoplay, or active-plane failures still downgrade the active runtime through `mediaController.ts`
+- reveal stalls now trigger poster fallback through `revealController.ts` instead of leaving the overlay pending forever
+- if poster-safe readiness still cannot be reached, reveal enters `failed`
+- `motionSystem.ts` now re-queues layout and warmup work on `visibilitychange`, `pageshow`, resize, and orientation changes so motion and media can resynchronize after tab resume or viewport changes
 
 ## Performance Safeguards
 
-The Phase 3 media runtime is designed to stay off the React hot path and protect decode/network budgets:
+The Phase 4 reveal pipeline is designed to stay off the React hot path and protect decode/network budgets:
 
 - React no longer owns or controls the landing video nodes
 - source changes are skipped when the resolved asset is unchanged
 - active and standby planes are reused instead of recreated during scroll
 - preload work is bounded by `maxConcurrentPreloads`
 - active media residency is bounded by `maxActiveVideos`
-- warmups are incremental and triggered from runtime boundaries rather than from component renders
+- reveal state is coarse and event-driven rather than timer-driven
+- warmups are staged and triggered from runtime boundaries rather than from component renders
+- the preloader reads only coarse store milestones and never subscribes to frame progress
 - scrub seeks are throttled and coalesced before writing `currentTime`
 - fallback to hold/poster prevents unstable decode loops from stalling the scene runtime
 
-## Phase 3 Implementation Report
+## Phase 4 Implementation Report
 
-### Media Runtime Architecture
+### Reveal Architecture
 
-Phase 3 keeps `motionSystem.ts` as the sole animation owner and inserts a stronger media runtime behind the existing controller contract. `mediaController.ts` now coordinates `assetRegistry.ts`, `mediaPool.ts`, `mediaPolicy.ts`, and `readinessMachine.ts` while `LandingStage.tsx` only supplies a passive host container.
+Phase 4 keeps `motionSystem.ts` as the sole animation owner and `mediaController.ts` as the sole media owner, but adds `revealController.ts` as the coarse owner of shell visibility. The shell remains route-scoped, the scene still mounts immediately, and the preloader only fades once tier resolution, motion readiness, bootstrap completion, and first-scene critical readiness all agree.
 
-### Media Lifecycle
+### Readiness Pipeline
 
-Assets start in the manifest, resolve to device-specific media records, advance through explicit readiness states, and are then mounted onto active or standby pooled planes. On activation they enter loop, hold, scrub, or poster mode depending on tier and manifest rules. On failure they degrade to poster mode instead of forcing React or motion to compensate.
+Reveal-critical assets are derived from the first manifest segment plus the current tier policy. Readiness still advances through `poster-ready`, `metadata-ready`, `first-frame-ready`, and `playable`, but the reveal controller now aggregates that readiness into a single coarse `criticalReadyState` and compares it against the tier-specific `unlockTarget`.
 
-### Scrub Synchronization
+### Warmup Orchestration
 
-Scroll progress still originates exclusively from `motionSystem.ts`. The media controller coalesces those progress updates, ignores tiny deltas, limits seek cadence, and uses `requestVideoFrameCallback` when available so decode progress can keep up with scrolling. If decode lag becomes unstable, the runtime falls back to hold mode for the active segment.
+`warmupCoordinator.ts` now owns staged scheduling:
+
+- first-scene critical requests are loaded for reveal safety
+- after-critical assets warm the near-future window
+- remaining manifest requests move into background warmup under existing concurrency limits
+- on-enter warmups still fire from motion boundaries, but the scheduling policy no longer lives inside `motionSystem.ts`
 
 ### Tier Behavior
 
-Premium tiers keep full scrub behavior and optional standby warmups. Balanced tiers keep scrub but under tighter seek/decode budgets. Hold tiers preserve cinematic video without frame-linked scrubbing. Poster tiers avoid video entirely and still satisfy the manifest and preloader pipeline deterministically.
+Premium tiers keep full scrub behavior and first-frame reveal safety. Balanced tiers keep first-frame reveal but tighter decode and warmup budgets. Hold tiers reveal at metadata safety and keep non-scrub cinematic playback. Poster tiers reveal from poster-only assets and skip video warmup entirely.
 
-### Performance Safeguards
+### Failure Fallback Logic
 
-The runtime avoids unnecessary allocations, DOM churn, and repeated video reloads by reusing pooled planes, gating preloads by concurrency, and skipping meaningless media writes. This keeps the landing deterministic across device tiers without reintroducing React into the animation or media hot path.
+If critical video readiness fails or stalls, the reveal controller downgrades the reveal contract to poster-safe readiness and asks `mediaController.ts` to enter poster fallback. That lets the landing reveal deterministically without waiting on arbitrary timers. If even poster-safe readiness cannot be reached, the coarse reveal state moves to `failed`.
 
 ## Tier System
 

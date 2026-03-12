@@ -6,9 +6,15 @@ import type { LandingRuntimeState } from '@/lib/landing/runtime/runtimeTypes'
 type Listener = () => void
 
 type LandingRuntimePatch = Partial<
-  Omit<LandingRuntimeState, 'readiness' | 'motion' | 'media' | 'debug'>
+  Omit<LandingRuntimeState, 'readiness' | 'preloader' | 'warmup' | 'motion' | 'media' | 'debug'>
 > & {
   readiness?: Partial<LandingRuntimeState['readiness']>
+  preloader?: Partial<LandingRuntimeState['preloader']>
+  warmup?: Partial<LandingRuntimeState['warmup']> & {
+    critical?: Partial<LandingRuntimeState['warmup']['critical']>
+    nearFuture?: Partial<LandingRuntimeState['warmup']['nearFuture']>
+    background?: Partial<LandingRuntimeState['warmup']['background']>
+  }
   motion?: Partial<LandingRuntimeState['motion']>
   media?: Partial<Omit<LandingRuntimeState['media'], 'assetReadiness'>> & {
     assetReadiness?: Partial<LandingRuntimeState['media']['assetReadiness']>
@@ -40,8 +46,33 @@ function createInitialState(sceneId: LandingSceneId): LandingRuntimeState {
     motionPolicy: null,
     readiness: {
       bootstrap: 'booting',
+      bootstrapPhase: 'boot',
+      revealState: 'boot',
       unlockTarget: 'poster-ready',
+      criticalReadyState: 'idle',
       activeAssetReadyState: 'idle',
+      motionReady: false,
+      tierResolved: false,
+      fallbackMode: 'none',
+    },
+    preloader: {
+      stage: 'boot',
+      progress: 0,
+    },
+    warmup: {
+      stage: 'idle',
+      critical: {
+        total: 0,
+        ready: 0,
+      },
+      nearFuture: {
+        total: 0,
+        ready: 0,
+      },
+      background: {
+        total: 0,
+        ready: 0,
+      },
     },
     motion: {
       activeSegmentId: null,
@@ -55,6 +86,7 @@ function createInitialState(sceneId: LandingSceneId): LandingRuntimeState {
     },
     debug: {
       lastDowngradeReason: null,
+      lastRevealFailureReason: null,
     },
   }
 }
@@ -84,6 +116,26 @@ export function createLandingRuntimeStore(sceneId: LandingSceneId): LandingRunti
         readiness: {
           ...state.readiness,
           ...next.readiness,
+        },
+        preloader: {
+          ...state.preloader,
+          ...next.preloader,
+        },
+        warmup: {
+          ...state.warmup,
+          ...next.warmup,
+          critical: {
+            ...state.warmup.critical,
+            ...next.warmup?.critical,
+          },
+          nearFuture: {
+            ...state.warmup.nearFuture,
+            ...next.warmup?.nearFuture,
+          },
+          background: {
+            ...state.warmup.background,
+            ...next.warmup?.background,
+          },
         },
         motion: {
           ...state.motion,

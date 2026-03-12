@@ -1,5 +1,7 @@
 import { createLandingMediaController } from '@/lib/landing/media/mediaController'
-import { getInitialLandingSegment, getLandingWarmupTargets } from '@/lib/landing/scenes/sceneSelectors'
+import { createLandingRevealController } from '@/lib/landing/runtime/revealController'
+import { createLandingWarmupCoordinator } from '@/lib/landing/runtime/warmupCoordinator'
+import { getInitialLandingSegment } from '@/lib/landing/scenes/sceneSelectors'
 import type { LandingSceneManifest } from '@/lib/landing/scenes/sceneTypes'
 import { createLandingMotionSystem } from '@/lib/landing/runtime/motionSystem'
 import { createLandingRuntimeStore, type LandingRuntimeStore } from '@/lib/landing/runtime/runtimeStore'
@@ -20,10 +22,20 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
     manifest,
     store,
   })
+  const warmupCoordinator = createLandingWarmupCoordinator({
+    manifest,
+    mediaController,
+    store,
+  })
+  const revealController = createLandingRevealController({
+    mediaController,
+    store,
+  })
   const motionSystem = createLandingMotionSystem({
     sceneManifest: manifest,
     mediaController,
     runtimeStore: store,
+    warmupCoordinator,
   })
 
   let initialized = false
@@ -36,10 +48,12 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
       }
 
       initialized = true
+      revealController.beginInitialization()
 
       const tierSnapshot = await resolveLandingTierSnapshot()
       const policies = createLandingTierPolicies(tierSnapshot)
       const initialSegment = getInitialLandingSegment(manifest)
+      const posterAssetId = initialSegment.media.posterAssetId ?? initialSegment.media.assetId
 
       store.patch({
         initialized: true,
@@ -49,17 +63,30 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
         performanceBudget: policies.performanceBudget,
         readiness: {
           bootstrap: 'booting',
+          bootstrapPhase: 'initializing',
+          revealState: 'initializing',
           unlockTarget: policies.mediaPolicy.initialReadinessTarget,
+          tierResolved: true,
         },
         debug: {
           lastDowngradeReason: tierSnapshot.downgradeReason,
+          lastRevealFailureReason: null,
         },
       })
+      revealController.markTierResolved(policies.mediaPolicy.initialReadinessTarget)
 
       mediaController.activateScene(manifest.id)
       mediaController.setActiveSegment(initialSegment)
-      await mediaController.primeCriticalAssets()
-      await mediaController.warmAssets(getLandingWarmupTargets(manifest, initialSegment.id))
+      const criticalPlan = warmupCoordinator.getCriticalPlan()
+      revealController.beginCriticalLoad({
+        criticalAssetIds: criticalPlan.assetIds,
+        posterAssetIds: posterAssetId ? [posterAssetId] : [],
+        targetReadiness: policies.mediaPolicy.initialReadinessTarget,
+      })
+      await warmupCoordinator.loadCriticalAssets()
+      revealController.markBootstrapReady()
+      await revealController.waitForReveal()
+      await warmupCoordinator.warmInitialAssets(initialSegment.id)
     },
     mountScene(sceneRoot) {
       return motionSystem.mount(sceneRoot)
@@ -69,6 +96,8 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
     },
     destroy() {
       motionSystem.destroy()
+      revealController.destroy()
+      warmupCoordinator.destroy()
       mediaController.destroy()
     },
   }

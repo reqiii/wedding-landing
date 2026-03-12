@@ -1,5 +1,6 @@
 import type { LandingMediaController } from '@/lib/landing/media/mediaController'
-import { getInitialLandingSegment, getLandingWarmupTargets } from '@/lib/landing/scenes/sceneSelectors'
+import type { LandingWarmupCoordinator } from '@/lib/landing/runtime/warmupCoordinator'
+import { getInitialLandingSegment } from '@/lib/landing/scenes/sceneSelectors'
 import type {
   LandingSceneId,
   LandingSceneManifest,
@@ -14,6 +15,7 @@ type LandingMotionSystemOptions = {
   sceneManifest: LandingSceneManifest
   mediaController: LandingMediaController
   runtimeStore: LandingRuntimeStore
+  warmupCoordinator: LandingWarmupCoordinator
 }
 
 export type LandingMotionSystem = {
@@ -231,7 +233,7 @@ function getStableActiveSegmentIndex(scene: SceneRuntime, sceneProgress: number,
 export function createLandingMotionSystem(
   options: LandingMotionSystemOptions
 ): LandingMotionSystem {
-  const { sceneManifest, mediaController, runtimeStore } = options
+  const { sceneManifest, mediaController, runtimeStore, warmupCoordinator } = options
   const scenes = [createSceneRuntime(sceneManifest)]
   const primaryScene = scenes[0]
   const initialSegment = getInitialLandingSegment(sceneManifest)
@@ -255,12 +257,7 @@ export function createLandingMotionSystem(
       return
     }
 
-    const targets = getLandingWarmupTargets(sceneManifest, segmentId)
-    if (targets.length === 0) {
-      return
-    }
-
-    void mediaController.warmAssets(targets)
+    void warmupCoordinator.warmBoundarySegment(segmentId)
   }
 
   const getMotionPolicy = () => runtimeStore.getState().motionPolicy ?? DEFAULT_MOTION_POLICY
@@ -446,6 +443,13 @@ export function createLandingMotionSystem(
     activeSceneIndex = nextActiveSceneIndex
     lastProcessedScrollY = currentScrollY
     layoutDirty = false
+    if (!runtimeStore.getState().readiness.motionReady) {
+      runtimeStore.patch({
+        readiness: {
+          motionReady: true,
+        },
+      })
+    }
   }
 
   const queueFrame = (forceLayout = false) => {
@@ -475,6 +479,13 @@ export function createLandingMotionSystem(
     queueFrame(true)
   }
 
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      queueFrame(true)
+      void warmupCoordinator.refreshActiveSegment()
+    }
+  }
+
   const detachRuntime = () => {
     mounted = false
     if (rafId) {
@@ -489,6 +500,13 @@ export function createLandingMotionSystem(
     window.removeEventListener('scroll', handleScroll)
     window.removeEventListener('resize', handleLayoutInvalidation)
     window.removeEventListener('orientationchange', handleLayoutInvalidation)
+    window.removeEventListener('pageshow', handleLayoutInvalidation)
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
+    runtimeStore.patch({
+      readiness: {
+        motionReady: false,
+      },
+    })
   }
 
   return {
@@ -513,7 +531,6 @@ export function createLandingMotionSystem(
       mediaController.setActiveSegment(initialSegment)
       mediaController.activateScene(primaryScene.id)
       runtimeStore.setMotionBoundary(primaryScene.id, initialSegment.id)
-      warmSegmentTargets(initialSegment.id)
       sceneRoot.dataset[ACTIVE_SCENE_DATASET_KEY] = primaryScene.id
       sceneRoot.dataset[ACTIVE_SEGMENT_DATASET_KEY] = initialSegment.id
       sceneRoot.dataset[SCENE_ACTIVE_DATASET_KEY] = 'false'
@@ -521,6 +538,8 @@ export function createLandingMotionSystem(
       window.addEventListener('scroll', handleScroll, { passive: true })
       window.addEventListener('resize', handleLayoutInvalidation)
       window.addEventListener('orientationchange', handleLayoutInvalidation)
+      window.addEventListener('pageshow', handleLayoutInvalidation)
+      document.addEventListener('visibilitychange', handleVisibilityChange)
 
       if (typeof ResizeObserver !== 'undefined') {
         resizeObserver = new ResizeObserver(handleLayoutInvalidation)

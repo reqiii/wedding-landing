@@ -5,13 +5,13 @@ import {
   type LandingResolvedSegmentMedia,
 } from '@/lib/landing/media/assetRegistry'
 import {
+  type LandingMediaPreloadRequest,
   getScrubSettings,
   getWarmupTargetReadiness,
   shouldUseStandbyPlane,
 } from '@/lib/landing/media/mediaPolicy'
 import { createLandingMediaPool, type LandingMediaPlane } from '@/lib/landing/media/mediaPool'
 import {
-  areAssetsReady,
   isReadinessSatisfied,
   mergeReadinessState,
 } from '@/lib/landing/media/readinessMachine'
@@ -29,8 +29,9 @@ export type LandingMediaController = {
   activateScene: (sceneId: LandingSceneId | null) => void
   setActiveSegment: (segment: LandingSegmentConfig) => void
   syncSegmentProgress: (sceneId: LandingSceneId, progress: number) => void
-  primeCriticalAssets: () => Promise<void>
+  preloadRequests: (requests: LandingMediaPreloadRequest[]) => Promise<void>
   warmAssets: (assetIds: LandingAssetId[]) => Promise<void>
+  fallbackToPoster: () => void
   destroy: () => void
 }
 
@@ -59,9 +60,6 @@ export function createLandingMediaController(
   let awaitingVideoFrame = false
   let decodeLagEvents = 0
 
-  const criticalRequests = assetRegistry.getCriticalRequests
-  const deferredRequests = assetRegistry.getDeferredRequests
-
   type PreloadJob = {
     targetReadiness: LandingReadyTarget
     promise: Promise<void>
@@ -73,8 +71,6 @@ export function createLandingMediaController(
     const current = store.getState().media.assetReadiness[assetId] ?? 'idle'
     const merged = mergeReadinessState(current, nextState)
     store.setAssetReadiness(assetId, merged)
-
-    unlockBootstrapIfReady()
 
     if (
       activeResolvedSegment &&
@@ -89,35 +85,6 @@ export function createLandingMediaController(
   const getMediaPolicy = () => store.getState().mediaPolicy
 
   const getActivePlane = () => mediaPool.getPlaneByRole('active')
-
-  const unlockBootstrapIfReady = () => {
-    const state = store.getState()
-    const policy = state.mediaPolicy
-    if (!policy || state.readiness.bootstrap === 'ready') {
-      return
-    }
-
-    const requests = criticalRequests(policy)
-    if (requests.length === 0) {
-      store.patch({
-        readiness: {
-          bootstrap: 'ready',
-        },
-      })
-      return
-    }
-
-    const requiredAssets = requests.map((request) => request.assetId)
-    if (!areAssetsReady(requiredAssets, state.media.assetReadiness, state.readiness.unlockTarget)) {
-      return
-    }
-
-    store.patch({
-      readiness: {
-        bootstrap: 'ready',
-      },
-    })
-  }
 
   const preloadAsset = async (
     assetId: LandingAssetId,
@@ -266,6 +233,11 @@ export function createLandingMediaController(
     activeModeOverride = mode
     activeRuntimeMode = mode
     clearScrubState()
+    store.patch({
+      readiness: {
+        fallbackMode: mode === 'poster' ? 'poster' : store.getState().readiness.fallbackMode,
+      },
+    })
     updateRuntimeSnapshot(mode)
     applyActiveSegment()
   }
@@ -449,6 +421,13 @@ export function createLandingMediaController(
 
     activeResolvedSegment = assetRegistry.resolveSegment(activeSegment, policy)
     activeRuntimeMode = activeModeOverride ?? activeResolvedSegment.effectiveMode
+    if (store.getState().readiness.fallbackMode !== 'none') {
+      store.patch({
+        readiness: {
+          fallbackMode: activeModeOverride === 'poster' ? 'poster' : 'none',
+        },
+      })
+    }
     updateRuntimeSnapshot(activeRuntimeMode)
 
     const activeAsset = activeResolvedSegment.activeAsset
@@ -576,26 +555,6 @@ export function createLandingMediaController(
     await Promise.all(workers)
   }
 
-  const queueDeferredWarmups = () => {
-    const policy = getMediaPolicy()
-    if (!policy) {
-      return
-    }
-
-    const requests = deferredRequests(policy).sort((left, right) => {
-      const rank = { critical: 0, high: 1, normal: 2 }
-      return rank[left.priority] - rank[right.priority]
-    })
-
-    if (requests.length === 0 || typeof window === 'undefined') {
-      return
-    }
-
-    window.setTimeout(() => {
-      void runPreloadRequests(requests, policy)
-    }, 0)
-  }
-
   return {
     attachMediaHost(element) {
       mediaHostCleanup?.()
@@ -654,31 +613,14 @@ export function createLandingMediaController(
       pendingScrubProgress = Math.max(0, Math.min(1, progress))
       queueScrubFlush()
     },
-    async primeCriticalAssets() {
+    async preloadRequests(requests) {
       const policy = store.getState().mediaPolicy
       if (!policy) {
         return
       }
 
       mediaPool.configure(policy, store.getState().performanceBudget)
-      const requests = criticalRequests(policy)
-      if (requests.length === 0) {
-        store.patch({
-          readiness: {
-            bootstrap: 'ready',
-          },
-        })
-        return
-      }
-
-      store.patch({
-        readiness: {
-          unlockTarget: policy.initialReadinessTarget,
-        },
-      })
       await runPreloadRequests(requests, policy)
-      unlockBootstrapIfReady()
-      queueDeferredWarmups()
     },
     async warmAssets(assetIds) {
       const policy = store.getState().mediaPolicy
@@ -695,6 +637,9 @@ export function createLandingMediaController(
         policy
       )
       prepareStandbyPlane(assetIds)
+    },
+    fallbackToPoster() {
+      fallbackActiveMode('poster')
     },
     destroy() {
       mediaHostCleanup?.()
@@ -720,6 +665,11 @@ export function createLandingMediaController(
         },
         readiness: {
           activeAssetReadyState: 'idle',
+          fallbackMode: 'none',
+        },
+        preloader: {
+          progress: 0,
+          stage: 'boot',
         },
       })
     },

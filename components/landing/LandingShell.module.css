@@ -198,6 +198,11 @@
     radial-gradient(circle at top, rgb(255 255 255 / 0.12), transparent 42%),
     linear-gradient(135deg, rgb(15 23 42 / 0.94), rgb(31 41 55 / 0.94));
   transition: opacity 260ms ease, visibility 0s linear 260ms;
+  will-change: opacity;
+}
+
+.preloaderRevealing {
+  pointer-events: none;
 }
 
 .preloaderHidden {
@@ -217,6 +222,21 @@
   -webkit-backdrop-filter: blur(18px);
 }
 
+.preloaderMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.preloaderStageLabel {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgb(255 255 255 / 0.58);
+}
+
 .preloaderBar {
   height: 0.35rem;
   overflow: hidden;
@@ -229,6 +249,15 @@
   width: 100%;
   transform-origin: left center;
   background: linear-gradient(90deg, #ffd4b3, #ffc4d6, #b8e6e6);
+  will-change: transform;
+}
+
+.preloaderProgressValue {
+  margin-top: 0.85rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.6);
 }
 
 @media (prefers-reduced-motion: reduce) {

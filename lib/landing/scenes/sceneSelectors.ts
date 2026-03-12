@@ -1,3 +1,4 @@
+import type { LandingWarmupHint } from '@/lib/landing/core/contracts'
 import type { LandingSegmentConfig, LandingSceneManifest, LandingSegmentId } from '@/lib/landing/scenes/sceneTypes'
 
 export function getLandingSegmentById(
@@ -40,9 +41,19 @@ export function getVisibleLandingSegments(
 
 export function getLandingWarmupTargets(
   manifest: LandingSceneManifest,
-  segmentId: LandingSegmentId | null
+  segmentId: LandingSegmentId | null,
+  when?: LandingWarmupHint['when']
 ) {
-  return getLandingSegmentById(manifest, segmentId)?.warmupHint?.targets ?? []
+  const warmupHint = getLandingSegmentById(manifest, segmentId)?.warmupHint
+  if (!warmupHint) {
+    return []
+  }
+
+  if (when && warmupHint.when !== when) {
+    return []
+  }
+
+  return warmupHint.targets
 }
 
 export function getLandingStoryLength(manifest: LandingSceneManifest) {

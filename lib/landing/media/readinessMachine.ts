@@ -70,6 +70,21 @@ export function resolveHighestReadyState(
   return highest
 }
 
+export function resolveLowestReadyState(
+  states: readonly LandingReadinessState[]
+): LandingReadinessState {
+  let lowest: LandingReadinessState = 'playable'
+
+  for (let index = 0; index < states.length; index += 1) {
+    const state = states[index]
+    if (READINESS_RANK[state] < READINESS_RANK[lowest]) {
+      lowest = state
+    }
+  }
+
+  return states.length === 0 ? 'idle' : lowest
+}
+
 export function areAssetsReady(
   assetIds: readonly string[],
   readinessMap: Partial<Record<string, LandingReadinessState>>,
