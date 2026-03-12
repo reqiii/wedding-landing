@@ -81,7 +81,7 @@ export function LandingStage({
                 data-asset-ready={segmentReadyState ?? 'idle'}
                 style={
                   {
-                    ['--landing-segment-progress' as string]: `var(--segment-progress-${segment.id}, 0)`,
+                    ['--landing-segment-progress' as string]: `var(--segment-progress-${segment.id}, var(--landing-segment-progress, 0))`,
                   }
                 }
               >

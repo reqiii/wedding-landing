@@ -20,6 +20,9 @@
 
 .sceneRoot {
   position: relative;
+  --landing-scroll-progress: 0;
+  --landing-scene-progress: 0;
+  --landing-segment-progress: 0;
 }
 
 .scrollTrack {

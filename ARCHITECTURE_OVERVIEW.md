@@ -60,8 +60,12 @@ The old `components/homepage` and `components/sections` stack is no longer the a
   Typed runtime state shape.
 - `runtimeStore.ts`
   External store with coarse-grained snapshot access for React.
+- `progressMath.ts`
+  Pure helper utilities for manifest range normalization and clamped progress math.
+- `sceneRegistry.ts`
+  Pure scene measurement/progress helper layer retained for non-owning runtime math reuse.
 - `motionSystem.ts`
-  Central motion integration that wraps the low-level scroll engine, routes progress into media/runtime callbacks, and owns segment-triggered warmup.
+  The single production motion runtime. It owns passive scroll scheduling, `requestAnimationFrame`, resize invalidation, hysteresis-protected segment activation, CSS variable writes, and delegated media synchronization.
 - `landingBootstrap.ts`
   Bootstraps tier resolution, policy setup, critical media priming, motion mounting, and stage attachment.
 
@@ -91,7 +95,8 @@ flowchart TD
   TierPolicies --> RuntimeStore
   LandingShell --> LandingScene
   LandingScene --> MotionSystem
-  MotionSystem --> ScrollEngine
+  MotionSystem --> LayoutCache
+  MotionSystem --> CssVars
   MotionSystem --> MediaController
   MediaController --> ReadinessMachine
   MediaController --> RuntimeStore
@@ -144,29 +149,64 @@ The external runtime store keeps only coarse-grained state:
 - `mediaPolicy`
 - `motionPolicy`
 - `readiness`
+- `motion.activeSceneId`
 - `motion.activeSegmentId`
-- `motion.documentProgress`
 - `media.activeAssetId`
 - `media.activePosterSrc`
 - `media.assetReadiness`
 
 Hot path motion and media updates stay imperative inside the motion and media systems instead of flowing through React context.
-React subscribes through `useSyncExternalStore` selectors and does not receive frame telemetry state.
+React subscribes through `useSyncExternalStore` selectors and does not receive frame telemetry state, live document progress, or per-segment motion progress.
 
 ## Motion System
 
-Phase 1 keeps the low-level idea of `lib/landing/runtime/scrollEngine.ts` but removes component-level ownership of scroll state.
-
 The motion system now:
 
-- mounts exactly one scroll registration for the landing scene
-- writes document progress into the external store
-- swaps active segment imperatively
-- feeds scrub progress directly into the media controller
-- triggers manifest-defined warmup targets from the runtime layer
+- owns the only passive scroll listener and the only `requestAnimationFrame` queue
+- measures layout only on invalidation through resize, orientation, and root resize signals
+- computes document, scene, and segment progress from manifest ranges and cached layout
+- uses hysteresis to stabilize active segment switching at scene boundaries
+- writes root and active-window segment CSS variables imperatively with epsilon-gated updates
+- updates the runtime store only for scene and segment boundary changes
+- feeds tier-approved scrub progress directly into the media controller
+- triggers manifest-defined warmup targets from the runtime layer only on boundary changes
 - keeps React out of frame-by-frame progress handling
 
-The active runtime uses exactly one scroll engine instance through `motionSystem.ts` wrapping `scrollEngine.ts`.
+`scrollEngine.ts` is no longer a runtime owner. The motion kernel now lives directly in `motionSystem.ts`.
+
+## Motion Flow
+
+```mermaid
+flowchart TD
+  ScrollResize["Scroll / resize / root resize"] --> MotionSystem
+  SceneManifest --> MotionSystem
+  TierPolicies --> MotionSystem
+  MotionSystem --> LayoutCache
+  MotionSystem -->|"epsilon-gated"| CssVars
+  MotionSystem -->|"boundary-only"| RuntimeStore
+  MotionSystem -->|"scene activate + segment sync"| MediaController
+  RuntimeStore --> LandingStage
+```
+
+## Scene Activation Model
+
+The engine keeps its own mutable scene and segment state outside React.
+
+Per frame, it:
+
+1. reads the current scroll position
+2. remeasures cached boundaries only if layout is dirty
+3. computes normalized scene progress from the manifest-defined scroll span
+4. resolves the active segment with hysteresis instead of switching exactly on raw boundaries
+5. writes CSS variables only for the active segment and the near-active mount window
+6. emits coarse store updates only when scene or segment boundaries actually change
+
+Resize and orientation invalidation trigger a full recompute and resync of:
+
+- scene activation
+- active segment selection
+- CSS custom properties
+- delegated media progress
 
 ## Media Pipeline
 
@@ -199,11 +239,12 @@ Media orchestration now flows like this:
 
 1. `sceneManifest.ts` declares asset ids, media modes, preload hints, and warmup hints
 2. `mediaPolicy.ts` resolves effective media behavior for the current tier
-3. `mediaController.ts` chooses poster vs video behavior and keeps the active media identity stable
-4. `readinessMachine.ts` upgrades readiness state explicitly
-5. `LandingStage.tsx` only reflects the current media snapshot from the store
+3. `motionSystem.ts` activates scenes and segments and forwards tier-approved scrub progress without touching media elements directly
+4. `mediaController.ts` chooses poster vs video behavior and keeps the active media identity stable
+5. `readinessMachine.ts` upgrades readiness state explicitly
+6. `LandingStage.tsx` only reflects the current media snapshot from the store
 
-Phase 1 still leaves room for future work such as standby pools, deeper asset reuse guarantees, and stricter failure UI.
+Phase 2 still leaves room for future work such as standby pools, deeper asset reuse guarantees, and stricter failure UI.
 
 ## Tier System
 

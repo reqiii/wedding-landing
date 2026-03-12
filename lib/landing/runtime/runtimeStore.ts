@@ -20,8 +20,10 @@ export type LandingRuntimeStore = {
   getState: () => LandingRuntimeState
   subscribe: (listener: Listener) => () => void
   patch: (next: LandingRuntimePatch) => void
-  setActiveSegment: (segmentId: LandingRuntimeState['motion']['activeSegmentId']) => void
-  setDocumentProgress: (progress: number) => void
+  setMotionBoundary: (
+    sceneId: LandingRuntimeState['motion']['activeSceneId'],
+    segmentId: LandingRuntimeState['motion']['activeSegmentId']
+  ) => void
   setAssetReadiness: (
     assetId: NonNullable<LandingRuntimeState['media']['activeAssetId']>,
     readiness: LandingReadinessState
@@ -43,8 +45,7 @@ function createInitialState(sceneId: LandingSceneId): LandingRuntimeState {
     },
     motion: {
       activeSegmentId: null,
-      activeSceneId: sceneId,
-      documentProgress: 0,
+      activeSceneId: null,
     },
     media: {
       activeAssetId: null,
@@ -103,8 +104,11 @@ export function createLandingRuntimeStore(sceneId: LandingSceneId): LandingRunti
       }
       emit()
     },
-    setActiveSegment(segmentId) {
-      if (state.motion.activeSegmentId === segmentId) {
+    setMotionBoundary(sceneId, segmentId) {
+      if (
+        state.motion.activeSceneId === sceneId &&
+        state.motion.activeSegmentId === segmentId
+      ) {
         return
       }
 
@@ -112,22 +116,8 @@ export function createLandingRuntimeStore(sceneId: LandingSceneId): LandingRunti
         ...state,
         motion: {
           ...state.motion,
+          activeSceneId: sceneId,
           activeSegmentId: segmentId,
-        },
-      }
-      emit()
-    },
-    setDocumentProgress(progress) {
-      const normalized = Math.max(0, Math.min(1, progress))
-      if (Math.abs(state.motion.documentProgress - normalized) < 0.02) {
-        return
-      }
-
-      state = {
-        ...state,
-        motion: {
-          ...state.motion,
-          documentProgress: normalized,
         },
       }
       emit()

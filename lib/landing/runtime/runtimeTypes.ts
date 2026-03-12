@@ -29,7 +29,6 @@ export type LandingRuntimeState = {
   motion: {
     activeSegmentId: LandingSegmentId | null
     activeSceneId: LandingSceneId | null
-    documentProgress: number
   }
   media: {
     activeAssetId: LandingAssetId | null

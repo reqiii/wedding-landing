@@ -35,7 +35,7 @@ export function LandingScene({
   }, [bootstrap])
 
   return (
-    <section ref={sceneRootRef} className={styles.sceneRoot}>
+    <section ref={sceneRootRef} className={styles.sceneRoot} data-scene-id={manifest.id}>
       <div className={styles.scrollTrack} aria-hidden="true">
         {manifest.segments.map((segment) => (
           <div

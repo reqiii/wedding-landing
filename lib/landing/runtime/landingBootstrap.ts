@@ -21,9 +21,9 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
     store,
   })
   const motionSystem = createLandingMotionSystem({
-    manifest,
+    sceneManifest: manifest,
     mediaController,
-    store,
+    runtimeStore: store,
   })
 
   let initialized = false
@@ -56,6 +56,7 @@ export function createLandingBootstrap(manifest: LandingSceneManifest): LandingB
         },
       })
 
+      mediaController.activateScene(manifest.id)
       mediaController.setActiveSegment(initialSegment)
       await mediaController.primeCriticalAssets()
       await mediaController.warmAssets(getLandingWarmupTargets(manifest, initialSegment.id))

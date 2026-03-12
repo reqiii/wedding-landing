@@ -2,7 +2,7 @@ import type { LandingAssetId, LandingMediaMode, LandingReadinessState } from '@/
 import { resolveEffectiveMediaMode } from '@/lib/landing/media/mediaPolicy'
 import { getLandingMediaAsset, resolveLandingMediaSource, resolveLandingPosterSource } from '@/lib/landing/media/mediaManifest'
 import { isReadinessSatisfied, mergeReadinessState } from '@/lib/landing/media/readinessMachine'
-import type { LandingSegmentConfig, LandingSceneManifest } from '@/lib/landing/scenes/sceneTypes'
+import type { LandingSceneId, LandingSegmentConfig, LandingSceneManifest } from '@/lib/landing/scenes/sceneTypes'
 import { getCriticalMediaRequests } from '@/lib/landing/media/mediaPolicy'
 import type { LandingRuntimeStore } from '@/lib/landing/runtime/runtimeStore'
 
@@ -13,8 +13,9 @@ type LandingMediaControllerOptions = {
 
 export type LandingMediaController = {
   attachVideoElement: (element: HTMLVideoElement | null) => () => void
+  activateScene: (sceneId: LandingSceneId | null) => void
   setActiveSegment: (segment: LandingSegmentConfig) => void
-  syncSegmentProgress: (progress: number) => void
+  syncSegmentProgress: (sceneId: LandingSceneId, progress: number) => void
   primeCriticalAssets: () => Promise<void>
   warmAssets: (assetIds: LandingAssetId[]) => Promise<void>
   destroy: () => void
@@ -27,6 +28,7 @@ export function createLandingMediaController(
 
   let videoElement: HTMLVideoElement | null = null
   let videoCleanup: (() => void) | null = null
+  let activeSceneId: LandingSceneId | null = null
   let activeSegment: LandingSegmentConfig | null = null
   let activeAssetId: LandingAssetId | null = null
   let activeMode: LandingMediaMode = 'poster'
@@ -256,12 +258,15 @@ export function createLandingMediaController(
         }
       }
     },
+    activateScene(sceneId) {
+      activeSceneId = sceneId
+    },
     setActiveSegment(segment) {
       activeSegment = segment
       syncVideoSource()
     },
-    syncSegmentProgress(progress) {
-      if (!videoElement || activeMode !== 'scrub') {
+    syncSegmentProgress(sceneId, progress) {
+      if (!videoElement || activeMode !== 'scrub' || activeSceneId !== sceneId) {
         return
       }
 
