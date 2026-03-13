@@ -5,7 +5,7 @@ import styles from '@/components/landing/LandingShell.module.css'
 import { LandingPanelFrame } from '@/components/landing/panels/LandingPanelFrame'
 import { GlassOverlay } from '@/components/landing/ui/GlassPanel'
 import {
-  getMountedLandingPanelSegments,
+  getMountedLandingPanels,
   getResolvedLandingContentSegment,
 } from '@/lib/landing/scenes/sceneSelectors'
 import type { LandingSceneManifest } from '@/lib/landing/scenes/sceneTypes'
@@ -30,35 +30,23 @@ export function LandingStage({
   const readiness = useLandingRuntimeSelector(store, (state) => state.readiness.activeAssetReadyState)
   const tierSnapshot = useLandingRuntimeSelector(store, (state) => state.tierSnapshot)
   const performanceBudget = useLandingRuntimeSelector(store, (state) => state.performanceBudget)
-  const mountStrategy = useLandingRuntimeSelector(
-    store,
-    (state) => state.motionPolicy?.mountStrategy ?? 'active-neighbors'
-  )
   const resolvedActiveSegment = getResolvedLandingContentSegment(
     manifest,
     activeSegmentId
   )
-  const mountedPanelSegments = getMountedLandingPanelSegments(
-    manifest,
-    activeSegmentId,
-    mountStrategy !== 'active-only'
-  )
-  const renderedPanelSegments =
-    mountedPanelSegments.length > 0
-      ? mountedPanelSegments
-      : resolvedActiveSegment
-        ? [resolvedActiveSegment]
-        : []
+  const mountedPanels = getMountedLandingPanels(manifest, activeSegmentId)
+  const renderedPanels = mountedPanels
   const visualTier = tierSnapshot?.tier ?? 'tier-1-hold'
   const prefersReducedMotion = tierSnapshot?.prefersReducedMotion ?? false
   const allowPremiumEffects = performanceBudget?.allowPremiumEffects ?? false
-  const mountedPanelCount = renderedPanelSegments.length
+  const mountedPanelCount = renderedPanels.length
   const showContinuityLayer =
     activeMode === 'poster' || readiness === 'idle' || readiness === 'failed'
   const activePanelKey = resolvedActiveSegment?.panelKey ?? null
   const isRsvpPosterContinuity = activePanelKey === 'rsvp' && showContinuityLayer
   const showStageOverlay = visualTier === 'tier-2-balanced' || allowPremiumEffects
   const showControlsRail = showStageOverlay && !prefersReducedMotion
+  const stagePanelState = renderedPanels.length > 1 ? 'handoff' : 'steady'
 
   useEffect(() => {
     const stage = stageRef.current
@@ -89,6 +77,7 @@ export function LandingStage({
       data-rsvp-poster-continuity={isRsvpPosterContinuity ? 'true' : 'false'}
       data-premium-effects={allowPremiumEffects ? 'true' : 'false'}
       data-reduced-motion={prefersReducedMotion ? 'true' : 'false'}
+      data-panel-state={stagePanelState}
     >
       <div className={styles.mediaPlane}>
         <div
@@ -119,12 +108,10 @@ export function LandingStage({
       <div className={styles.panelLayer}>
         <div className={styles.panelStage}>
           <div className={styles.panelStack}>
-            {renderedPanelSegments.map((segment, index) => {
-              const isActive = segment.id === resolvedActiveSegment?.id
+            {renderedPanels.map(({ segment, lifecycle, position, progressSegmentId }) => {
               const segmentReadyState = segment.media.assetId
                 ? assetReadiness[segment.media.assetId]
                 : undefined
-              const position = index === 0 ? 'current' : 'next'
 
               return (
                 <LandingPanelFrame
@@ -133,8 +120,9 @@ export function LandingStage({
                   tier={visualTier}
                   allowPremiumEffects={allowPremiumEffects}
                   prefersReducedMotion={prefersReducedMotion}
-                  isActive={isActive}
+                  lifecycle={lifecycle}
                   position={position}
+                  progressSegmentId={progressSegmentId}
                   assetReadyState={segmentReadyState}
                 />
               )

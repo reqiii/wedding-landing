@@ -5,6 +5,17 @@ function isContentSegment(segment: LandingSegmentConfig) {
   return Boolean(segment.panelKey)
 }
 
+export type LandingPanelLifecycle = 'active' | 'entering' | 'exiting'
+
+export type LandingPanelPosition = 'previous' | 'current' | 'next'
+
+export type LandingMountedPanel = {
+  segment: LandingSegmentConfig
+  lifecycle: LandingPanelLifecycle
+  position: LandingPanelPosition
+  progressSegmentId: LandingSegmentId
+}
+
 export function getLandingSegmentById(
   manifest: LandingSceneManifest,
   segmentId: LandingSegmentId | null
@@ -82,6 +93,29 @@ export function getResolvedLandingPanelKey(
   return getResolvedLandingContentSegment(manifest, activeSegmentId)?.panelKey ?? null
 }
 
+export function getPreviousLandingContentSegment(
+  manifest: LandingSceneManifest,
+  segmentId: LandingSegmentId | null
+): LandingSegmentConfig | null {
+  if (!segmentId) {
+    return null
+  }
+
+  const segmentIndex = manifest.segments.findIndex((segment) => segment.id === segmentId)
+  if (segmentIndex === -1) {
+    return null
+  }
+
+  for (let index = segmentIndex - 1; index >= 0; index -= 1) {
+    const segment = manifest.segments[index]
+    if (isContentSegment(segment)) {
+      return segment
+    }
+  }
+
+  return null
+}
+
 export function getNextLandingContentSegment(
   manifest: LandingSceneManifest,
   segmentId: LandingSegmentId | null
@@ -105,27 +139,70 @@ export function getNextLandingContentSegment(
   return null
 }
 
+function createActiveMountedPanel(segment: LandingSegmentConfig): LandingMountedPanel {
+  return {
+    segment,
+    lifecycle: 'active',
+    position: 'current',
+    progressSegmentId: segment.id,
+  }
+}
+
+export function getMountedLandingPanels(
+  manifest: LandingSceneManifest,
+  activeSegmentId: LandingSegmentId | null
+): LandingMountedPanel[] {
+  const fallbackSegment = getFirstLandingContentSegment(manifest)
+  const activeSegment = getLandingSegmentById(manifest, activeSegmentId)
+  const resolvedActiveSegment = getResolvedLandingContentSegment(manifest, activeSegmentId) ?? fallbackSegment
+
+  if (!resolvedActiveSegment) {
+    return []
+  }
+
+  if (!activeSegment || isContentSegment(activeSegment)) {
+    return [createActiveMountedPanel(resolvedActiveSegment)]
+  }
+
+  const mountedPanels: LandingMountedPanel[] = []
+  const previousSegment = getPreviousLandingContentSegment(manifest, activeSegment.id)
+  const nextSegment = getNextLandingContentSegment(manifest, activeSegment.id)
+
+  if (previousSegment) {
+    mountedPanels.push({
+      segment: previousSegment,
+      lifecycle: 'exiting',
+      position: 'previous',
+      progressSegmentId: activeSegment.id,
+    })
+  }
+
+  if (nextSegment) {
+    mountedPanels.push({
+      segment: nextSegment,
+      lifecycle: 'entering',
+      position: 'next',
+      progressSegmentId: activeSegment.id,
+    })
+  }
+
+  return mountedPanels.length > 0 ? mountedPanels : [createActiveMountedPanel(resolvedActiveSegment)]
+}
+
 export function getMountedLandingPanelSegments(
   manifest: LandingSceneManifest,
   activeSegmentId: LandingSegmentId | null,
   includeUpcoming = true
 ): LandingSegmentConfig[] {
-  const primarySegment = getResolvedLandingContentSegment(manifest, activeSegmentId)
-  if (!primarySegment) {
-    return []
+  const mountedPanels = getMountedLandingPanels(manifest, activeSegmentId)
+
+  if (includeUpcoming) {
+    return mountedPanels.map((panel) => panel.segment)
   }
 
-  const mountedSegments = [primarySegment]
-  if (!includeUpcoming) {
-    return mountedSegments
-  }
-
-  const upcomingSegment = getNextLandingContentSegment(manifest, primarySegment.id)
-  if (upcomingSegment && upcomingSegment.id !== primarySegment.id) {
-    mountedSegments.push(upcomingSegment)
-  }
-
-  return mountedSegments.slice(0, 2)
+  return mountedPanels
+    .filter((panel) => panel.lifecycle === 'active')
+    .map((panel) => panel.segment)
 }
 
 export function getLandingWarmupTargets(

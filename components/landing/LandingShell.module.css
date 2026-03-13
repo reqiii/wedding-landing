@@ -215,80 +215,64 @@
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  transition: opacity 280ms ease, transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
-  transform: translate3d(0, 0.55rem, 0);
+  transform: none;
 }
 
-.panelFrame[data-residency='active'],
-.panelFrame[data-residency='nearby'] {
+.panelFrame[data-lifecycle='active'],
+.panelFrame[data-lifecycle='entering'],
+.panelFrame[data-lifecycle='exiting'] {
   visibility: visible;
+  opacity: 1;
 }
 
-.panelFrame[data-residency='active'] {
-  opacity: 1;
+.panelFrame[data-lifecycle='active'] {
   pointer-events: auto;
-  transform: translate3d(0, 0, 0);
-}
-
-.panelFrame[data-residency='nearby'] {
-  opacity: 1;
-  pointer-events: none;
-  transform: translate3d(0, 0, 0);
 }
 
 .panelMotion {
-  --panel-progress: var(--landing-segment-progress, 0);
+  --panel-progress: clamp(0, var(--landing-segment-progress, 0), 1);
   --panel-enter-factor: clamp(0, calc((var(--panel-progress) - 0.08) * 5), 1);
   --panel-exit-factor: clamp(0, calc((1 - var(--panel-progress)) * 4.545), 1);
   --panel-visibility: min(var(--panel-enter-factor), var(--panel-exit-factor));
   width: 100%;
-  opacity: calc(0.58 + (var(--panel-visibility) * 0.42));
-  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 4vh), 0)
-    scale(calc(0.975 + (var(--panel-visibility) * 0.025)));
   transform-origin: center bottom;
-  transition:
-    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 320ms ease;
 }
 
-.panelFrame[data-residency='active'] .panelMotion,
-.panelFrame[data-residency='nearby'] .panelMotion {
+.panelFrame[data-lifecycle='active'] .panelMotion,
+.panelFrame[data-lifecycle='entering'] .panelMotion,
+.panelFrame[data-lifecycle='exiting'] .panelMotion {
   will-change: transform, opacity;
 }
 
-.panelFrame[data-residency='active'] .panelMotion {
+.panelFrame[data-lifecycle='active'] .panelMotion {
   opacity: calc(0.9 + (var(--panel-visibility) * 0.1));
   transform: translate3d(0, calc((1 - var(--panel-visibility)) * 3vh), 0)
     scale(calc(0.985 + (var(--panel-visibility) * 0.015)));
 }
 
-.panelFrame[data-residency='nearby'] .panelMotion {
-  opacity: 0;
-  transform: translate3d(0, 2vh, 0) scale(0.99);
+.panelFrame[data-lifecycle='exiting'][data-position='previous'] .panelMotion {
+  opacity: calc(1 - var(--panel-progress));
+  transform: translate3d(0, calc(var(--panel-progress) * -3.5vh), 0)
+    scale(calc(0.985 - (var(--panel-progress) * 0.02)));
 }
 
-.panelFrame[data-position='previous'] .panelMotion {
-  opacity: 0.16;
+.panelFrame[data-lifecycle='entering'][data-position='next'] .panelMotion {
+  opacity: var(--panel-progress);
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 3.5vh), 0)
+    scale(calc(0.965 + (var(--panel-progress) * 0.035)));
+}
+
+.panelFrame[data-lifecycle='exiting']:not([data-position='previous']) .panelMotion {
+  opacity: calc(1 - var(--panel-progress));
   transform: translate3d(0, -3.5vh, 0) scale(0.965);
 }
 
-.panelFrame[data-position='next'] .panelMotion {
+.panelFrame[data-lifecycle='entering']:not([data-position='next']) .panelMotion {
+  opacity: var(--panel-progress);
   transform: translate3d(0, 2vh, 0) scale(0.99);
 }
 
-.stickyStage[data-visual-tier='tier-1-hold'] .panelFrame[data-residency='nearby'][data-position='next'] .panelMotion {
-  opacity: 0.08;
-}
-
-.stickyStage[data-visual-tier='tier-2-balanced'] .panelFrame[data-residency='nearby'][data-position='next'] .panelMotion {
-  opacity: 0.12;
-}
-
-.stickyStage[data-visual-tier='tier-3-premium'] .panelFrame[data-residency='nearby'][data-position='next'] .panelMotion {
-  opacity: 0.16;
-}
-
-.panelFrame[data-motion='hero-lockup'][data-residency='active'] .panelMotion {
+.panelFrame[data-motion='hero-lockup'][data-lifecycle='active'] .panelMotion {
   transform: translate3d(0, calc((1 - var(--panel-visibility)) * 2vh), 0)
     scale(calc(0.99 + (var(--panel-visibility) * 0.01)));
 }
@@ -298,7 +282,7 @@
   transform: scale(calc(0.992 + (var(--panel-visibility) * 0.008)));
 }
 
-.panelFrame[data-motion='info-grid'][data-residency='active'] .panelMotion {
+.panelFrame[data-motion='info-grid'][data-lifecycle='active'] .panelMotion {
   transform: translate3d(0, calc((1 - var(--panel-visibility)) * 2.6vh), 0)
     scale(calc(0.982 + (var(--panel-visibility) * 0.018)));
 }
@@ -377,13 +361,20 @@
     transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.panelFrame[data-residency='active'] .cue {
+.panelFrame[data-lifecycle='active'] .cue,
+.panelFrame[data-lifecycle='entering'] .cue,
+.panelFrame[data-lifecycle='exiting'] .cue {
   will-change: transform, opacity;
 }
 
-.panelFrame[data-residency='nearby'] .cue {
-  opacity: 0;
-  transform: translate3d(0, 1rem, 0);
+.panelFrame[data-lifecycle='entering'] .cue {
+  opacity: calc(var(--cue-visibility) * var(--panel-progress));
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 1rem), 0);
+}
+
+.panelFrame[data-lifecycle='exiting'] .cue {
+  opacity: calc(var(--cue-visibility) * (1 - var(--panel-progress)));
+  transform: translate3d(0, calc(var(--panel-progress) * -0.8rem), 0);
 }
 
 .preloader {
@@ -480,6 +471,14 @@
     opacity: 1;
   }
 
+  .panelFrame[data-lifecycle='entering'] .panelMotion {
+    opacity: var(--panel-progress);
+  }
+
+  .panelFrame[data-lifecycle='exiting'] .panelMotion {
+    opacity: calc(1 - var(--panel-progress));
+  }
+
   .panelFrame[data-position='previous'] .panelMotion,
   .panelFrame[data-position='next'] .panelMotion,
   .cue,
@@ -487,5 +486,13 @@
   .posterTint,
   .stageControlsRail {
     transform: none;
+  }
+
+  .panelFrame[data-lifecycle='entering'] .cue {
+    opacity: calc(var(--cue-visibility) * var(--panel-progress));
+  }
+
+  .panelFrame[data-lifecycle='exiting'] .cue {
+    opacity: calc(var(--cue-visibility) * (1 - var(--panel-progress)));
   }
 }
