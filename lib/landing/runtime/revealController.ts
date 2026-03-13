@@ -129,7 +129,7 @@ export function createLandingRevealController(
   }
   let stallTimer = 0
   let stallDetected = false
-  let revealFrame = 0
+  let revealQueued = false
   let reconcileQueued = false
   const waiters = new Set<() => void>()
   let criticalReadyAtMs: number | null = null
@@ -234,42 +234,45 @@ export function createLandingRevealController(
     })
   }
 
-  const queueReveal = () => {
-    if (revealFrame || typeof window === 'undefined') {
+  const flushReveal = () => {
+    revealQueued = false
+    const state = store.getState()
+    if (state.readiness.revealState !== 'ready-to-reveal') {
       return
     }
 
-    revealFrame = window.requestAnimationFrame(() => {
-      revealFrame = 0
-      const state = store.getState()
-      if (state.readiness.revealState !== 'ready-to-reveal') {
-        return
-      }
+    const revealedAtMs = readNow()
+    const initializeStartedAtMs = state.debug.performance.startup.initializeStartedAtMs
 
-      const revealedAtMs = readNow()
-      const initializeStartedAtMs = state.debug.performance.startup.initializeStartedAtMs
-
-      store.patch({
-        readiness: {
-          revealState: 'revealed',
-        },
-        preloader: {
-          stage: 'ready',
-          progress: 1,
-        },
-        debug: {
-          performance: {
-            startup: {
-              criticalReadyAtMs,
-              revealReadyAtMs,
-              revealedAtMs,
-              totalRevealMs:
-                initializeStartedAtMs === null ? null : Math.max(0, revealedAtMs - initializeStartedAtMs),
-            },
+    store.patch({
+      readiness: {
+        revealState: 'revealed',
+      },
+      preloader: {
+        stage: 'ready',
+        progress: 1,
+      },
+      debug: {
+        performance: {
+          startup: {
+            criticalReadyAtMs,
+            revealReadyAtMs,
+            revealedAtMs,
+            totalRevealMs:
+              initializeStartedAtMs === null ? null : Math.max(0, revealedAtMs - initializeStartedAtMs),
           },
         },
-      })
+      },
     })
+  }
+
+  const queueReveal = () => {
+    if (revealQueued) {
+      return
+    }
+
+    revealQueued = true
+    queueMicrotask(flushReveal)
   }
 
   const startPosterFallback = (reason: string) => {
@@ -492,10 +495,7 @@ export function createLandingRevealController(
     },
     destroy() {
       clearStallTimer()
-      if (revealFrame && typeof window !== 'undefined') {
-        window.cancelAnimationFrame(revealFrame)
-        revealFrame = 0
-      }
+      revealQueued = false
       if (typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilityChange)
       }
