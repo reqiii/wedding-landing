@@ -62,6 +62,8 @@ export function createLandingMediaController(
   let telemetryFlushTimer = 0
   let awaitingVideoFrame = false
   let decodeLagEvents = 0
+  let activePosterLoadToken = 0
+  let activePosterImage: HTMLImageElement | null = null
   const mediaTelemetry = {
     seekCount: 0,
     decodeSamples: 0,
@@ -273,11 +275,14 @@ export function createLandingMediaController(
     const state = store.getState()
     const activeAsset = activeResolvedSegment?.activeAsset ?? null
     const posterAsset = activeResolvedSegment?.posterAsset ?? activeAsset
+    const activePosterSrc = posterAsset?.posterSrc ?? null
 
     store.patch({
       media: {
         activeAssetId: activeAsset?.assetId ?? null,
-        activePosterSrc: posterAsset?.posterSrc ?? null,
+        activePosterSrc,
+        activePosterReadyState:
+          state.media.activePosterSrc === activePosterSrc ? state.media.activePosterReadyState : 'idle',
         activeMode: mode,
       },
       readiness: {
@@ -286,6 +291,51 @@ export function createLandingMediaController(
           : 'idle',
       },
     })
+  }
+
+  const preloadActivePoster = (reason: string) => {
+    const posterSrc = activeResolvedSegment?.posterAsset?.posterSrc ?? activeResolvedSegment?.activeAsset?.posterSrc ?? null
+
+    activePosterLoadToken += 1
+    const loadToken = activePosterLoadToken
+    activePosterImage = null
+
+    if (!posterSrc || typeof window === 'undefined') {
+      store.patch({
+        media: {
+          activePosterReadyState: posterSrc ? 'idle' : 'failed',
+        },
+      })
+      return
+    }
+
+    const image = new Image()
+    activePosterImage = image
+    image.onload = () => {
+      if (activePosterLoadToken !== loadToken || store.getState().media.activePosterSrc !== posterSrc) {
+        return
+      }
+
+      activePosterImage = null
+      store.patch({
+        media: {
+          activePosterReadyState: 'poster-ready',
+        },
+      })
+    }
+    image.onerror = () => {
+      if (activePosterLoadToken !== loadToken || store.getState().media.activePosterSrc !== posterSrc) {
+        return
+      }
+
+      activePosterImage = null
+      store.patch({
+        media: {
+          activePosterReadyState: 'failed',
+        },
+      })
+    }
+    image.src = posterSrc
   }
 
   const syncPlaneSource = (
@@ -524,6 +574,7 @@ export function createLandingMediaController(
       })
     }
     updateRuntimeSnapshot(activeRuntimeMode)
+    preloadActivePoster('active segment resolved')
 
     const activeAsset = activeResolvedSegment.activeAsset
     if (!activeAsset || activeRuntimeMode === 'poster' || activeAsset.kind !== 'video') {
@@ -748,6 +799,7 @@ export function createLandingMediaController(
       decodeLagObserverCleanup?.()
       decodeLagObserverCleanup = null
       clearScrubState()
+      activePosterImage = null
       preloadJobs.clear()
       if (telemetryFlushTimer && typeof window !== 'undefined') {
         window.clearTimeout(telemetryFlushTimer)
@@ -768,6 +820,7 @@ export function createLandingMediaController(
         media: {
           activeAssetId: null,
           activePosterSrc: null,
+          activePosterReadyState: 'idle',
           activeMode: 'poster',
         },
         readiness: {

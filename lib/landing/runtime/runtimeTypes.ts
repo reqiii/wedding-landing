@@ -120,6 +120,7 @@ export type LandingRuntimeState = {
   media: {
     activeAssetId: LandingAssetId | null
     activePosterSrc: string | null
+    activePosterReadyState: LandingReadinessState
     activeMode: LandingMediaMode
     assetReadiness: Partial<Record<LandingAssetId, LandingReadinessState>>
   }

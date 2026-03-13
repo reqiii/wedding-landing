@@ -36,6 +36,17 @@ function resolveCriticalReadyState(
   return resolveLowestReadyState(assetIds.map((assetId) => readinessMap[assetId] ?? 'idle'))
 }
 
+function resolvePosterFallbackReadyState(
+  state: ReturnType<LandingRuntimeStore['getState']>
+): LandingReadinessState {
+  const posterReadyState = state.media.activePosterReadyState
+  if (posterReadyState === 'failed') {
+    return 'failed'
+  }
+
+  return isReadinessSatisfied(posterReadyState, 'poster-ready') ? 'poster-ready' : 'idle'
+}
+
 function resolvePreloaderStage(state: ReturnType<LandingRuntimeStore['getState']>) {
   if (state.readiness.revealState === 'revealed') {
     return 'ready'
@@ -138,7 +149,7 @@ export function createLandingRevealController(
 
   const startStallTimer = () => {
     clearStallTimer()
-    if (typeof window === 'undefined' || document.visibilityState === 'hidden') {
+    if (typeof window === 'undefined') {
       return
     }
 
@@ -293,10 +304,10 @@ export function createLandingRevealController(
 
   const reconcile = () => {
     const state = store.getState()
-    const criticalReadyState = resolveCriticalReadyState(
-      revealPlan.criticalAssetIds,
-      state.media.assetReadiness
-    )
+    const criticalReadyState =
+      state.readiness.fallbackMode === 'poster'
+        ? resolvePosterFallbackReadyState(state)
+        : resolveCriticalReadyState(revealPlan.criticalAssetIds, state.media.assetReadiness)
     const stage = resolvePreloaderStage(state)
     const progress = resolvePreloaderProgress({
       ...state,
@@ -384,12 +395,9 @@ export function createLandingRevealController(
       return
     }
 
-    if (document.visibilityState === 'hidden') {
-      clearStallTimer()
-      return
+    if (!stallTimer) {
+      startStallTimer()
     }
-
-    startStallTimer()
   }
 
   if (typeof document !== 'undefined') {

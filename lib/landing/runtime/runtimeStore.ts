@@ -92,6 +92,7 @@ function createInitialState(sceneId: LandingSceneId): LandingRuntimeState {
     media: {
       activeAssetId: null,
       activePosterSrc: null,
+      activePosterReadyState: 'idle',
       activeMode: 'poster',
       assetReadiness: {},
     },
