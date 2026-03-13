@@ -209,6 +209,10 @@
 .panelFrame {
   position: absolute;
   inset: 0;
+  --panel-progress: clamp(0, var(--landing-segment-progress, 0), 1);
+  --panel-enter-visibility: clamp(0, calc((var(--panel-progress) - 0.08) * 2.35), 1);
+  --panel-exit-visibility: clamp(0, calc(1 - (var(--panel-progress) * 1.55)), 1);
+  --panel-visibility: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,14 +230,23 @@
 }
 
 .panelFrame[data-lifecycle='active'] {
+  --panel-visibility: 1;
   pointer-events: auto;
 }
 
+.panelFrame[data-lifecycle='entering'] {
+  --panel-visibility: var(--panel-enter-visibility);
+}
+
+.panelFrame[data-lifecycle='exiting'] {
+  --panel-visibility: var(--panel-exit-visibility);
+}
+
+.panelFrame[data-panel-key='intro'][data-lifecycle='exiting'] {
+  --panel-visibility: clamp(0, calc(1 - (var(--panel-progress) * 2.15)), 1);
+}
+
 .panelMotion {
-  --panel-progress: clamp(0, var(--landing-segment-progress, 0), 1);
-  --panel-enter-factor: clamp(0, calc((var(--panel-progress) - 0.08) * 5), 1);
-  --panel-exit-factor: clamp(0, calc((1 - var(--panel-progress)) * 4.545), 1);
-  --panel-visibility: min(var(--panel-enter-factor), var(--panel-exit-factor));
   width: 100%;
   transform-origin: center bottom;
 }
@@ -245,36 +258,38 @@
 }
 
 .panelFrame[data-lifecycle='active'] .panelMotion {
-  opacity: calc(0.9 + (var(--panel-visibility) * 0.1));
-  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 3vh), 0)
-    scale(calc(0.985 + (var(--panel-visibility) * 0.015)));
+  opacity: 1;
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 1.4vh), 0)
+    scale(calc(0.992 + (var(--panel-progress) * 0.008)));
 }
 
 .panelFrame[data-lifecycle='exiting'][data-position='previous'] .panelMotion {
-  opacity: calc(1 - var(--panel-progress));
+  opacity: var(--panel-visibility);
   transform: translate3d(0, calc(var(--panel-progress) * -3.5vh), 0)
-    scale(calc(0.985 - (var(--panel-progress) * 0.02)));
+    scale(calc(0.985 + (var(--panel-visibility) * 0.01)));
 }
 
 .panelFrame[data-lifecycle='entering'][data-position='next'] .panelMotion {
-  opacity: var(--panel-progress);
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 3.5vh), 0)
-    scale(calc(0.965 + (var(--panel-progress) * 0.035)));
+  opacity: var(--panel-visibility);
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 3vh), 0)
+    scale(calc(0.972 + (var(--panel-visibility) * 0.028)));
 }
 
 .panelFrame[data-lifecycle='exiting']:not([data-position='previous']) .panelMotion {
-  opacity: calc(1 - var(--panel-progress));
-  transform: translate3d(0, -3.5vh, 0) scale(0.965);
+  opacity: var(--panel-visibility);
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * -2.4vh), 0)
+    scale(calc(0.972 + (var(--panel-visibility) * 0.013)));
 }
 
 .panelFrame[data-lifecycle='entering']:not([data-position='next']) .panelMotion {
-  opacity: var(--panel-progress);
-  transform: translate3d(0, 2vh, 0) scale(0.99);
+  opacity: var(--panel-visibility);
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 1.8vh), 0)
+    scale(calc(0.986 + (var(--panel-visibility) * 0.014)));
 }
 
 .panelFrame[data-motion='hero-lockup'][data-lifecycle='active'] .panelMotion {
-  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 2vh), 0)
-    scale(calc(0.99 + (var(--panel-visibility) * 0.01)));
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 1vh), 0)
+    scale(calc(0.996 + (var(--panel-progress) * 0.004)));
 }
 
 .panelFrame[data-motion='ambient'] .panelMotion,
@@ -283,8 +298,8 @@
 }
 
 .panelFrame[data-motion='info-grid'][data-lifecycle='active'] .panelMotion {
-  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 2.6vh), 0)
-    scale(calc(0.982 + (var(--panel-visibility) * 0.018)));
+  transform: translate3d(0, calc((1 - var(--panel-progress)) * 1.2vh), 0)
+    scale(calc(0.99 + (var(--panel-progress) * 0.01)));
 }
 
 .glassOverlayLayer {
@@ -343,38 +358,14 @@
 }
 
 .cue {
-  --cue-progress: var(--landing-segment-progress, 0);
-  --cue-enter-start: 0.12;
-  --cue-enter-gain: 5;
-  --cue-exit-gain: 4;
-  --cue-enter-factor: clamp(
-    0,
-    calc((var(--cue-progress) - var(--cue-enter-start)) * var(--cue-enter-gain)),
-    1
-  );
-  --cue-exit-factor: clamp(0, calc((1 - var(--cue-progress)) * var(--cue-exit-gain)), 1);
-  --cue-visibility: min(var(--cue-enter-factor), var(--cue-exit-factor));
-  opacity: var(--cue-visibility);
-  transform: translate3d(0, calc((1 - var(--cue-visibility)) * 0.7rem), 0);
-  transition:
-    opacity 240ms ease,
-    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: var(--panel-visibility);
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * var(--cue-shift-y, 0.7rem)), 0);
 }
 
 .panelFrame[data-lifecycle='active'] .cue,
 .panelFrame[data-lifecycle='entering'] .cue,
 .panelFrame[data-lifecycle='exiting'] .cue {
   will-change: transform, opacity;
-}
-
-.panelFrame[data-lifecycle='entering'] .cue {
-  opacity: calc(var(--cue-visibility) * var(--panel-progress));
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 1rem), 0);
-}
-
-.panelFrame[data-lifecycle='exiting'] .cue {
-  opacity: calc(var(--cue-visibility) * (1 - var(--panel-progress)));
-  transform: translate3d(0, calc(var(--panel-progress) * -0.8rem), 0);
 }
 
 .preloader {
@@ -472,11 +463,11 @@
   }
 
   .panelFrame[data-lifecycle='entering'] .panelMotion {
-    opacity: var(--panel-progress);
+    opacity: var(--panel-visibility);
   }
 
   .panelFrame[data-lifecycle='exiting'] .panelMotion {
-    opacity: calc(1 - var(--panel-progress));
+    opacity: var(--panel-visibility);
   }
 
   .panelFrame[data-position='previous'] .panelMotion,
@@ -488,11 +479,7 @@
     transform: none;
   }
 
-  .panelFrame[data-lifecycle='entering'] .cue {
-    opacity: calc(var(--cue-visibility) * var(--panel-progress));
-  }
-
-  .panelFrame[data-lifecycle='exiting'] .cue {
-    opacity: calc(var(--cue-visibility) * (1 - var(--panel-progress)));
+  .cue {
+    opacity: var(--panel-visibility);
   }
 }

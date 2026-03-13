@@ -9,15 +9,15 @@ export function DetailsPanel({ segment, tier }: LandingPanelRuntimeProps) {
   return (
     <LandingSurface theme={segment.theme} tier={tier}>
       <div className="space-y-8">
-        <div {...getCueProps(segment, 'heading')}>
+        <div {...getCueProps('heading')}>
           <h2 className="text-center font-display text-3xl text-dark-gray md:text-4xl">
             Главная информация
           </h2>
         </div>
         <div
-          {...getCueProps(segment, 'body')}
+          {...getCueProps('body')}
           className={cn(
-            getCueProps(segment, 'body').className,
+            getCueProps('body').className,
             'grid grid-cols-1 gap-6 text-medium-gray md:grid-cols-2'
           )}
         >

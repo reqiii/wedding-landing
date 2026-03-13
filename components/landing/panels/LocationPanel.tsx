@@ -9,15 +9,15 @@ export function LocationPanel({ segment, tier }: LandingPanelRuntimeProps) {
   return (
     <LandingSurface theme={segment.theme} tier={tier}>
       <div className="space-y-6">
-        <div {...getCueProps(segment, 'heading')}>
+        <div {...getCueProps('heading')}>
           <h2 className="text-center font-display text-3xl text-dark-gray md:text-4xl">
             Локация и трансфер
           </h2>
         </div>
         <div
-          {...getCueProps(segment, 'body')}
+          {...getCueProps('body')}
           className={cn(
-            getCueProps(segment, 'body').className,
+            getCueProps('body').className,
             'space-y-4 text-lg leading-relaxed text-medium-gray'
           )}
         >

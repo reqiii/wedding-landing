@@ -51,10 +51,10 @@ export function FinalePanel({ segment, tier }: LandingPanelRuntimeProps) {
   return (
     <LandingSurface theme={segment.theme} tier={tier}>
       <div className="space-y-6 text-center">
-        <div {...getCueProps(segment, 'heading')}>
+        <div {...getCueProps('heading')}>
           <h2 className="font-display text-3xl md:text-4xl">Мы вас ждём</h2>
         </div>
-        <div {...getCueProps(segment, 'support')}>
+        <div {...getCueProps('support')}>
           <CountdownPanel tier={tier} />
         </div>
       </div>

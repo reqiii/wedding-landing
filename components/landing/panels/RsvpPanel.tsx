@@ -16,10 +16,10 @@ export function RsvpPanel({ segment, tier }: LandingPanelRuntimeProps) {
     >
       <div className={styles.rsvpLayout}>
         <div className={styles.header}>
-          <div {...getCueProps(segment, 'heading')}>
+          <div {...getCueProps('heading')}>
             <h2 className="font-display text-3xl text-[#1c2331] md:text-4xl">Анкета гостя</h2>
           </div>
-          <div {...getCueProps(segment, 'body')}>
+          <div {...getCueProps('body')}>
             <p className={styles.lead}>
               Информация поможет нам при организации торжества.
               <br />

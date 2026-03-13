@@ -57,6 +57,7 @@ export function LandingPanelFrame({
       data-active={isActive ? 'true' : 'false'}
       data-lifecycle={lifecycle}
       data-position={position}
+      data-panel-key={segment.panelKey ?? 'none'}
       data-motion={segment.motionPreset}
       data-theme={segment.theme}
       data-asset-ready={assetReadyState}

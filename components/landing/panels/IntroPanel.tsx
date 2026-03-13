@@ -6,11 +6,11 @@ import type { LandingPanelRuntimeProps } from '@/components/landing/panels/panel
 import { resolveLandingPosterSource } from '@/lib/landing/mediaManifest'
 import { cn } from '@/lib/utils'
 
-export function IntroPanel({ segment }: LandingPanelRuntimeProps) {
+export function IntroPanel(_props: LandingPanelRuntimeProps) {
   return (
     <div className="flex min-h-[70dvh] items-start justify-center pt-[min(8vh,3rem)]">
       <div className="w-full text-center">
-        <div {...getCueProps(segment, 'heading')}>
+        <div {...getCueProps('heading')}>
           <Image
             src={resolveLandingPosterSource('logo', 'desktop')}
             alt="Логотип"
@@ -22,9 +22,9 @@ export function IntroPanel({ segment }: LandingPanelRuntimeProps) {
           />
         </div>
         <div
-          {...getCueProps(segment, 'support')}
+          {...getCueProps('support')}
           className={cn(
-            getCueProps(segment, 'support').className,
+            getCueProps('support').className,
             'mx-auto mt-8 max-w-xl text-sm uppercase tracking-[0.32em] text-white/70'
           )}
         >
