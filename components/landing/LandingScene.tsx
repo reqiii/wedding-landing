@@ -39,6 +39,7 @@ export function LandingScene({
 
   return (
     <section ref={sceneRootRef} className={styles.sceneRoot} data-scene-id={manifest.id}>
+      <LandingStage manifest={manifest} store={bootstrap.store} mediaHostRef={setMediaHostRef} />
       <div className={styles.scrollTrack} aria-hidden="true">
         {manifest.segments.map((segment) => (
           <div
@@ -49,7 +50,6 @@ export function LandingScene({
           />
         ))}
       </div>
-      <LandingStage manifest={manifest} store={bootstrap.store} mediaHostRef={setMediaHostRef} />
     </section>
   )
 }

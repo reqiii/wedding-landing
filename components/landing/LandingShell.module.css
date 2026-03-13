@@ -5,7 +5,8 @@
     radial-gradient(circle at top, rgb(255 255 255 / 0.16), transparent 42%),
     linear-gradient(135deg, #0f172a 0%, #1f2937 24%, #7c5c46 58%, #f5e6d3 100%);
   color: #f8fafc;
-  overflow: clip;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .shell::before {
@@ -20,6 +21,8 @@
 
 .sceneRoot {
   position: relative;
+  min-height: 100svh;
+  background: #050816;
   --landing-scroll-progress: 0;
   --landing-scene-progress: 0;
   --landing-segment-progress: 0;
@@ -33,6 +36,9 @@
 .scrollTrack {
   position: relative;
   z-index: 1;
+  margin-top: -100svh;
+  padding-top: 100svh;
+  background: #050816;
 }
 
 .scrollSegment {
@@ -43,9 +49,12 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  height: 100dvh;
-  overflow: hidden;
+  width: 100%;
+  height: 100svh;
+  min-height: 100svh;
+  overflow: clip;
   isolation: isolate;
+  background: #050816;
 }
 
 .mediaPlane,
@@ -59,6 +68,19 @@
 .mediaPlane {
   z-index: var(--landing-layer-media);
   background: #050816;
+  overflow: hidden;
+}
+
+.mediaPlane::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(180deg, rgb(3 6 17 / 0.58), rgb(3 6 17 / 0.12) 24%, rgb(3 6 17 / 0.2) 52%, rgb(3 6 17 / 0.68)),
+    radial-gradient(circle at center, transparent 24%, rgb(3 6 17 / 0.34) 100%);
+  pointer-events: none;
+  transition: opacity 260ms ease;
 }
 
 .posterLayer,
@@ -74,8 +96,9 @@
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  opacity: calc(0.72 + (var(--landing-scene-progress) * 0.28));
+  opacity: calc(0.7 + (var(--landing-scene-progress) * 0.24));
   transform: scale(calc(1.01 + ((1 - var(--landing-scene-progress)) * 0.03)));
+  filter: saturate(0.9) contrast(1.06) brightness(0.74);
 }
 
 .continuityLayer {
@@ -89,7 +112,7 @@
   background:
     linear-gradient(180deg, rgb(5 8 22 / 0.48), rgb(5 8 22 / 0.12) 32%, rgb(5 8 22 / 0.55)),
     radial-gradient(circle at center, transparent 0%, rgb(5 8 22 / 0.25) 100%);
-  opacity: calc(0.82 - (var(--landing-scene-progress) * 0.16));
+  opacity: calc(0.9 - (var(--landing-scene-progress) * 0.18));
   will-change: opacity;
 }
 
@@ -98,10 +121,39 @@
   transition: opacity 220ms ease;
   background: #050816;
   pointer-events: none;
+  filter: saturate(0.9) contrast(1.08) brightness(0.74);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity, transform;
 }
 
 .mediaVisible {
   opacity: 1;
+}
+
+.mediaHost > video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #050816;
+  transform: translateZ(0) scale(1.01);
+  transform-origin: center center;
+  backface-visibility: hidden;
+  will-change: opacity, transform;
+}
+
+.stickyStage[data-visual-tier='tier-0-poster'] .mediaPlane::after {
+  opacity: 0.92;
+}
+
+.stickyStage[data-visual-tier='tier-1-hold'] .mediaPlane::after,
+.stickyStage[data-visual-tier='tier-2-balanced'] .mediaPlane::after {
+  opacity: 0.82;
+}
+
+.stickyStage[data-visual-tier='tier-3-premium'] .mediaPlane::after {
+  opacity: 0.72;
 }
 
 .panelLayer {
@@ -136,8 +188,8 @@
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  transition: transform 260ms ease;
-  transform: translate3d(0, 1rem, 0);
+  transition: opacity 280ms ease, transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, 0.55rem, 0);
 }
 
 .panelFrame[data-residency='active'],
@@ -152,18 +204,24 @@
 }
 
 .panelFrame[data-residency='nearby'] {
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
+  transform: translate3d(0, 0, 0);
 }
 
 .panelMotion {
   --panel-progress: var(--landing-segment-progress, 0);
+  --panel-enter-factor: clamp(0, calc((var(--panel-progress) - 0.08) * 5), 1);
+  --panel-exit-factor: clamp(0, calc((1 - var(--panel-progress)) * 4.545), 1);
+  --panel-visibility: min(var(--panel-enter-factor), var(--panel-exit-factor));
   width: 100%;
-  opacity: calc(0.42 + (var(--panel-progress) * 0.58));
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 10vh), 0)
-    scale(calc(0.94 + (var(--panel-progress) * 0.06)));
+  opacity: calc(0.58 + (var(--panel-visibility) * 0.42));
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 4vh), 0)
+    scale(calc(0.975 + (var(--panel-visibility) * 0.025)));
   transform-origin: center bottom;
-  transition: transform 260ms ease, opacity 220ms ease;
+  transition:
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 320ms ease;
 }
 
 .panelFrame[data-residency='active'] .panelMotion,
@@ -172,9 +230,14 @@
 }
 
 .panelFrame[data-residency='active'] .panelMotion {
-  opacity: calc(0.78 + (var(--panel-progress) * 0.22));
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 7vh), 0)
-    scale(calc(0.96 + (var(--panel-progress) * 0.04)));
+  opacity: calc(0.9 + (var(--panel-visibility) * 0.1));
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 3vh), 0)
+    scale(calc(0.985 + (var(--panel-visibility) * 0.015)));
+}
+
+.panelFrame[data-residency='nearby'] .panelMotion {
+  opacity: 0;
+  transform: translate3d(0, 2vh, 0) scale(0.99);
 }
 
 .panelFrame[data-position='previous'] .panelMotion {
@@ -183,23 +246,34 @@
 }
 
 .panelFrame[data-position='next'] .panelMotion {
+  transform: translate3d(0, 2vh, 0) scale(0.99);
+}
+
+.stickyStage[data-visual-tier='tier-1-hold'] .panelFrame[data-residency='nearby'][data-position='next'] .panelMotion {
   opacity: 0.08;
-  transform: translate3d(0, 6vh, 0) scale(0.94);
+}
+
+.stickyStage[data-visual-tier='tier-2-balanced'] .panelFrame[data-residency='nearby'][data-position='next'] .panelMotion {
+  opacity: 0.12;
+}
+
+.stickyStage[data-visual-tier='tier-3-premium'] .panelFrame[data-residency='nearby'][data-position='next'] .panelMotion {
+  opacity: 0.16;
 }
 
 .panelFrame[data-motion='hero-lockup'][data-residency='active'] .panelMotion {
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 4vh), 0)
-    scale(calc(0.98 + (var(--panel-progress) * 0.02)));
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 2vh), 0)
+    scale(calc(0.99 + (var(--panel-visibility) * 0.01)));
 }
 
 .panelFrame[data-motion='ambient'] .panelMotion,
 .panelFrame[data-motion='soft-fade'] .panelMotion {
-  transform: scale(calc(0.985 + (var(--panel-progress) * 0.015)));
+  transform: scale(calc(0.992 + (var(--panel-visibility) * 0.008)));
 }
 
 .panelFrame[data-motion='info-grid'][data-residency='active'] .panelMotion {
-  transform: translate3d(0, calc((1 - var(--panel-progress)) * 5vh), 0)
-    scale(calc(0.97 + (var(--panel-progress) * 0.03)));
+  transform: translate3d(0, calc((1 - var(--panel-visibility)) * 2.6vh), 0)
+    scale(calc(0.982 + (var(--panel-visibility) * 0.018)));
 }
 
 .glassOverlayLayer {
@@ -212,6 +286,11 @@
   width: 100%;
   height: 100%;
   border-radius: clamp(1.5rem, 3vw, 2.5rem);
+  opacity: 0.56;
+}
+
+.stickyStage[data-visual-tier='tier-3-premium'] .stageGlassOverlay {
+  opacity: 0.68;
 }
 
 .controlsLayer {
@@ -234,9 +313,21 @@
 
 .cue {
   --cue-progress: var(--landing-segment-progress, 0);
-  opacity: clamp(0, calc(var(--cue-progress) * 1.35), 1);
-  transform: translate3d(0, calc((1 - var(--cue-progress)) * 1rem), 0);
-  transition: opacity 240ms ease, transform 280ms ease;
+  --cue-enter-start: 0.12;
+  --cue-enter-gain: 5;
+  --cue-exit-gain: 4;
+  --cue-enter-factor: clamp(
+    0,
+    calc((var(--cue-progress) - var(--cue-enter-start)) * var(--cue-enter-gain)),
+    1
+  );
+  --cue-exit-factor: clamp(0, calc((1 - var(--cue-progress)) * var(--cue-exit-gain)), 1);
+  --cue-visibility: min(var(--cue-enter-factor), var(--cue-exit-factor));
+  opacity: var(--cue-visibility);
+  transform: translate3d(0, calc((1 - var(--cue-visibility)) * 0.7rem), 0);
+  transition:
+    opacity 240ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .panelFrame[data-residency='active'] .cue {

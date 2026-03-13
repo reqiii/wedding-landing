@@ -1,0 +1,2135 @@
+[
+  {
+    "name": "tier-0-poster",
+    "revealObserved": true,
+    "expectedTier": "tier-0-poster",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "reducedMotion": "reduce",
+    "overrides": {
+      "hardwareConcurrency": 2,
+      "deviceMemory": 4,
+      "effectiveType": "2g",
+      "saveData": true
+    },
+    "steps": [
+      {
+        "label": "reveal",
+        "scrollY": 0,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "",
+            "opacity": 1,
+            "color": "rgb(248, 250, 252)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 64,
+              "y": 183,
+              "width": 1152,
+              "height": 256,
+              "top": 183,
+              "right": 1216,
+              "bottom": 439,
+              "left": 64
+            }
+          },
+          {
+            "text": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+            "opacity": 1,
+            "color": "rgba(255, 255, 255, 0.7)",
+            "fontSize": "14px",
+            "rect": {
+              "x": 352,
+              "y": 471,
+              "width": 576,
+              "height": 40,
+              "top": 471,
+              "right": 928,
+              "bottom": 511,
+              "left": 352
+            }
+          }
+        ],
+        "activeText": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-0-poster\\reveal.png"
+      },
+      {
+        "label": "hero_hold",
+        "scrollY": 693,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.970612,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "",
+            "opacity": 1,
+            "color": "rgb(248, 250, 252)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 65.41058349609375,
+              "y": 188.53961181640625,
+              "width": 1149.1787109375,
+              "height": 255.37307739257812,
+              "top": 188.53961181640625,
+              "right": 1214.5892944335938,
+              "bottom": 443.9126892089844,
+              "left": 65.41058349609375
+            }
+          },
+          {
+            "text": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+            "opacity": 1,
+            "color": "rgba(255, 255, 255, 0.7)",
+            "fontSize": "14px",
+            "rect": {
+              "x": 352.7052917480469,
+              "y": 475.8343200683594,
+              "width": 574.58935546875,
+              "height": 39.902008056640625,
+              "top": 475.8343200683594,
+              "right": 927.2946472167969,
+              "bottom": 515.736328125,
+              "left": 352.7052917480469
+            }
+          }
+        ],
+        "activeText": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-0-poster\\hero_hold.png"
+      },
+      {
+        "label": "story",
+        "scrollY": 1940,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "История и приглашение",
+            "opacity": 1,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 113,
+              "y": 351.5,
+              "width": 1054,
+              "height": 40,
+              "top": 351.5,
+              "right": 1167,
+              "bottom": 391.5,
+              "left": 113
+            }
+          },
+          {
+            "text": "Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искрен",
+            "opacity": 1,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 256,
+              "y": 415.5,
+              "width": 768,
+              "height": 133,
+              "top": 415.5,
+              "right": 1024,
+              "bottom": 548.5,
+              "left": 256
+            }
+          }
+        ],
+        "activeText": "История и приглашение Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов. Нам важны ваши присутствие и поддержка. Будем ",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-0-poster\\story.png"
+      },
+      {
+        "label": "details",
+        "scrollY": 3119,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Главная информация",
+            "opacity": 0.947,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 113,
+              "y": 230,
+              "width": 1054,
+              "height": 40,
+              "top": 230,
+              "right": 1167,
+              "bottom": 270,
+              "left": 113
+            }
+          },
+          {
+            "text": "Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образ",
+            "opacity": 0.547,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 113,
+              "y": 302,
+              "width": 1054,
+              "height": 368,
+              "top": 302,
+              "right": 1167,
+              "bottom": 670,
+              "left": 113
+            }
+          }
+        ],
+        "activeText": "Главная информация Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образы в спокойной палитре. Ниже 5 оттенков, которые особенно красиво поддержат атмосф",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-0-poster\\details.png"
+      },
+      {
+        "label": "location",
+        "scrollY": 4297,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Главная информация",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 124.593994140625,
+              "y": 271.35797119140625,
+              "width": 1030.81201171875,
+              "height": 39.1199951171875,
+              "top": 271.35797119140625,
+              "right": 1155.406005859375,
+              "bottom": 310.47796630859375,
+              "left": 124.593994140625
+            }
+          },
+          {
+            "text": "Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образ",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 124.593994140625,
+              "y": 341.77398681640625,
+              "width": 1030.81201171875,
+              "height": 359.90399169921875,
+              "top": 341.77398681640625,
+              "right": 1155.406005859375,
+              "bottom": 701.677978515625,
+              "left": 124.593994140625
+            }
+          }
+        ],
+        "activeText": "Главная информация Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образы в спокойной палитре. Ниже 5 оттенков, которые особенно красиво поддержат атмосф",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-0-poster\\location.png"
+      },
+      {
+        "label": "rsvp",
+        "scrollY": 5405,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Локация и трансфер",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 333.54998779296875,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 333.54998779296875,
+              "right": 1153.8249893188477,
+              "bottom": 372.54998779296875,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Локация Загородная усадьба «Белый сад» Московская область, Истринский район Как добраться На личном автомобиле парковка ",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 395.95001220703125,
+              "width": 1027.6500244140625,
+              "height": 262.27496337890625,
+              "top": 395.95001220703125,
+              "right": 1153.8249893188477,
+              "bottom": 658.2249755859375,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Локация и трансфер Локация Загородная усадьба «Белый сад» Московская область, Истринский район Как добраться На личном автомобиле парковка на территории. Маршрут будет доступен в день мероприятия. Трансфер Для гостей буд",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-0-poster\\rsvp.png"
+      },
+      {
+        "label": "final",
+        "scrollY": 6445,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 274.1749572753906,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 274.1749572753906,
+              "right": 1153.8249893188477,
+              "bottom": 313.1749572753906,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 320.9749755859375,
+              "width": 1027.6500244140625,
+              "height": 54.5999755859375,
+              "top": 320.9749755859375,
+              "right": 1153.8249893188477,
+              "bottom": 375.574951171875,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-0-poster\\final.png"
+      }
+    ],
+    "rapidScroll": [
+      {
+        "label": "rapid-0.2",
+        "scrollY": 1386,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "История и приглашение",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 398.1499938964844,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 398.1499938964844,
+              "right": 1153.8249893188477,
+              "bottom": 437.1499938964844,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искрен",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 265.5999755859375,
+              "y": 460.54998779296875,
+              "width": 748.7999877929688,
+              "height": 129.67498779296875,
+              "top": 460.54998779296875,
+              "right": 1014.3999633789062,
+              "bottom": 590.2249755859375,
+              "left": 265.5999755859375
+            }
+          }
+        ],
+        "activeText": "История и приглашение Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов. Нам важны ваши присутствие и поддержка. Будем ",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.55",
+        "scrollY": 3812,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.849206,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Главная информация",
+            "opacity": 0.127485,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 122.71281433105469,
+              "y": 264.64739990234375,
+              "width": 1034.5743408203125,
+              "height": 39.26275634765625,
+              "top": 264.64739990234375,
+              "right": 1157.2871551513672,
+              "bottom": 303.91015625,
+              "left": 122.71281433105469
+            }
+          },
+          {
+            "text": "Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образ",
+            "opacity": 0.155224,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 122.71281433105469,
+              "y": 335.3204040527344,
+              "width": 1034.5743408203125,
+              "height": 361.2176208496094,
+              "top": 335.3204040527344,
+              "right": 1157.2871551513672,
+              "bottom": 696.5380249023438,
+              "left": 122.71281433105469
+            }
+          }
+        ],
+        "activeText": "Главная информация Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образы в спокойной палитре. Ниже 5 оттенков, которые особенно красиво поддержат атмосф",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.82",
+        "scrollY": 5683,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0.819,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 113,
+              "y": 221,
+              "width": 1054,
+              "height": 40,
+              "top": 221,
+              "right": 1167,
+              "bottom": 261,
+              "left": 113
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0.419,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 113,
+              "y": 269,
+              "width": 1054,
+              "height": 56,
+              "top": 269,
+              "right": 1167,
+              "bottom": 325,
+              "left": 113
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.34",
+        "scrollY": 2356,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "История и приглашение",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 398.1499938964844,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 398.1499938964844,
+              "right": 1153.8249893188477,
+              "bottom": 437.1499938964844,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искрен",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 265.5999755859375,
+              "y": 460.54998779296875,
+              "width": 748.7999877929688,
+              "height": 129.67498779296875,
+              "top": 460.54998779296875,
+              "right": 1014.3999633789062,
+              "bottom": 590.2249755859375,
+              "left": 265.5999755859375
+            }
+          }
+        ],
+        "activeText": "История и приглашение Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов. Нам важны ваши присутствие и поддержка. Будем ",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.95",
+        "scrollY": 6584,
+        "tier": "tier-0-poster",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 274.1749572753906,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 274.1749572753906,
+              "right": 1153.8249893188477,
+              "bottom": 313.1749572753906,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 320.9749755859375,
+              "width": 1027.6500244140625,
+              "height": 54.5999755859375,
+              "top": 320.9749755859375,
+              "right": 1153.8249893188477,
+              "bottom": 375.574951171875,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      }
+    ]
+  },
+  {
+    "name": "tier-1-hold",
+    "revealObserved": true,
+    "expectedTier": "tier-1-hold",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "reducedMotion": "no-preference",
+    "overrides": {
+      "hardwareConcurrency": 4,
+      "deviceMemory": 4,
+      "effectiveType": "4g",
+      "saveData": false
+    },
+    "steps": [
+      {
+        "label": "reveal",
+        "scrollY": 0,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "loop",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "",
+            "opacity": 1,
+            "color": "rgb(248, 250, 252)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 24,
+              "y": 174.59375,
+              "width": 342,
+              "height": 171,
+              "top": 174.59375,
+              "right": 366,
+              "bottom": 345.59375,
+              "left": 24
+            }
+          },
+          {
+            "text": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+            "opacity": 1,
+            "color": "rgba(255, 255, 255, 0.7)",
+            "fontSize": "14px",
+            "rect": {
+              "x": 24,
+              "y": 377.59375,
+              "width": 342,
+              "height": 60,
+              "top": 377.59375,
+              "right": 366,
+              "bottom": 437.59375,
+              "left": 24
+            }
+          }
+        ],
+        "activeText": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-1-hold\\reveal.png"
+      },
+      {
+        "label": "hero_hold",
+        "scrollY": 650,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "loop",
+        "activePanelOpacity": 0.97053,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "",
+            "opacity": 1,
+            "color": "rgb(248, 250, 252)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 24.419937133789062,
+              "y": 179.79576110839844,
+              "width": 341.16015625,
+              "height": 170.58006286621094,
+              "top": 179.79576110839844,
+              "right": 365.58009338378906,
+              "bottom": 350.3758239746094,
+              "left": 24.419937133789062
+            }
+          },
+          {
+            "text": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+            "opacity": 1,
+            "color": "rgba(255, 255, 255, 0.7)",
+            "fontSize": "14px",
+            "rect": {
+              "x": 24.419937133789062,
+              "y": 382.2972412109375,
+              "width": 341.16015625,
+              "height": 59.8526611328125,
+              "top": 382.2972412109375,
+              "right": 365.58009338378906,
+              "bottom": 442.14990234375,
+              "left": 24.419937133789062
+            }
+          }
+        ],
+        "activeText": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-1-hold\\hero_hold.png"
+      },
+      {
+        "label": "story",
+        "scrollY": 1820,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "hold",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "История и приглашение",
+            "opacity": 1,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 49,
+              "y": 219.734375,
+              "width": 292,
+              "height": 72,
+              "top": 219.734375,
+              "right": 341,
+              "bottom": 291.734375,
+              "left": 49
+            }
+          },
+          {
+            "text": "Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искрен",
+            "opacity": 1,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 49,
+              "y": 315.734375,
+              "width": 292,
+              "height": 308.5,
+              "top": 315.734375,
+              "right": 341,
+              "bottom": 624.234375,
+              "left": 49
+            }
+          }
+        ],
+        "activeText": "История и приглашение Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов. Нам важны ваши присутствие и поддержка. Будем ",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-1-hold\\story.png"
+      },
+      {
+        "label": "details",
+        "scrollY": 2925,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "hold",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Главная информация",
+            "opacity": 0.946835,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 49,
+              "y": -33.20074462890625,
+              "width": 292,
+              "height": 72,
+              "top": -33.20074462890625,
+              "right": 341,
+              "bottom": 38.79925537109375,
+              "left": 49
+            }
+          },
+          {
+            "text": "Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образ",
+            "opacity": 0.547047,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 49,
+              "y": 76.87918090820312,
+              "width": 292,
+              "height": 808,
+              "top": 76.87918090820312,
+              "right": 341,
+              "bottom": 884.8791809082031,
+              "left": 49
+            }
+          }
+        ],
+        "activeText": "Главная информация Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образы в спокойной палитре. Ниже 5 оттенков, которые особенно красиво поддержат атмосф",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-1-hold\\details.png"
+      },
+      {
+        "label": "location",
+        "scrollY": 4029,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "hold",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Главная информация",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.212005615234375,
+              "y": 30.175582885742188,
+              "width": 285.5760192871094,
+              "height": 70.41600036621094,
+              "top": 30.175582885742188,
+              "right": 337.78802490234375,
+              "bottom": 100.59158325195312,
+              "left": 52.212005615234375
+            }
+          },
+          {
+            "text": "Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образ",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.212005615234375,
+              "y": 131.8875732421875,
+              "width": 285.5760192871094,
+              "height": 790.2239990234375,
+              "top": 131.8875732421875,
+              "right": 337.78802490234375,
+              "bottom": 922.111572265625,
+              "left": 52.212005615234375
+            }
+          }
+        ],
+        "activeText": "Главная информация Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образы в спокойной палитре. Ниже 5 оттенков, которые особенно красиво поддержат атмосф",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-1-hold\\location.png"
+      },
+      {
+        "label": "rsvp",
+        "scrollY": 5069,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Локация и трансфер",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.649993896484375,
+              "y": 190.89996337890625,
+              "width": 284.70001220703125,
+              "height": 70.19998168945312,
+              "top": 190.89996337890625,
+              "right": 337.3500061035156,
+              "bottom": 261.0999450683594,
+              "left": 52.649993896484375
+            }
+          },
+          {
+            "text": "Локация Загородная усадьба «Белый сад» Московская область, Истринский район Как добраться На личном автомобиле парковка ",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 52.649993896484375,
+              "y": 284.49993896484375,
+              "width": 284.70001220703125,
+              "height": 490.425048828125,
+              "top": 284.49993896484375,
+              "right": 337.3500061035156,
+              "bottom": 774.9249877929688,
+              "left": 52.649993896484375
+            }
+          }
+        ],
+        "activeText": "Локация и трансфер Локация Загородная усадьба «Белый сад» Московская область, Истринский район Как добраться На личном автомобиле парковка на территории. Маршрут будет доступен в день мероприятия. Трансфер Для гостей буд",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-1-hold\\rsvp.png"
+      },
+      {
+        "label": "final",
+        "scrollY": 6044,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "hold",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.649993896484375,
+              "y": 223.65936279296875,
+              "width": 284.70001220703125,
+              "height": 35.0999755859375,
+              "top": 223.65936279296875,
+              "right": 337.3500061035156,
+              "bottom": 258.75933837890625,
+              "left": 52.649993896484375
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.649993896484375,
+              "y": 266.5593566894531,
+              "width": 284.70001220703125,
+              "height": 109.19998168945312,
+              "top": 266.5593566894531,
+              "right": 337.3500061035156,
+              "bottom": 375.75933837890625,
+              "left": 52.649993896484375
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-1-hold\\final.png"
+      }
+    ],
+    "rapidScroll": [
+      {
+        "label": "rapid-0.2",
+        "scrollY": 5900,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "hold",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.649993896484375,
+              "y": 223.65936279296875,
+              "width": 284.70001220703125,
+              "height": 35.0999755859375,
+              "top": 223.65936279296875,
+              "right": 337.3500061035156,
+              "bottom": 258.75933837890625,
+              "left": 52.649993896484375
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.649993896484375,
+              "y": 266.5593566894531,
+              "width": 284.70001220703125,
+              "height": 109.19998168945312,
+              "top": 266.5593566894531,
+              "right": 337.3500061035156,
+              "bottom": 375.75933837890625,
+              "left": 52.649993896484375
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.55",
+        "scrollY": 5768,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "hold",
+        "activePanelOpacity": 0.846438,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0.216454,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 51.24877166748047,
+              "y": 197.06967163085938,
+              "width": 287.50244140625,
+              "height": 35.44549560546875,
+              "top": 197.06967163085938,
+              "right": 338.75121307373047,
+              "bottom": 232.51516723632812,
+              "left": 51.24877166748047
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0.264602,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 51.24877166748047,
+              "y": 238.87298583984375,
+              "width": 287.50244140625,
+              "height": 110.27490234375,
+              "top": 238.87298583984375,
+              "right": 338.75121307373047,
+              "bottom": 349.14788818359375,
+              "left": 51.24877166748047
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.82",
+        "scrollY": 5395,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.990894,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0.997726,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 49.062286376953125,
+              "y": 157.88778686523438,
+              "width": 291.8754577636719,
+              "height": 35.984649658203125,
+              "top": 157.88778686523438,
+              "right": 340.937744140625,
+              "bottom": 193.8724365234375,
+              "left": 49.062286376953125
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0.997909,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 49.062286376953125,
+              "y": 201.8636474609375,
+              "width": 291.8754577636719,
+              "height": 111.95220947265625,
+              "top": 201.8636474609375,
+              "right": 340.937744140625,
+              "bottom": 313.81585693359375,
+              "left": 49.062286376953125
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.34",
+        "scrollY": 5254,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.997971,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0.939186,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 49.19611358642578,
+              "y": 162.845703125,
+              "width": 291.6077880859375,
+              "height": 35.951629638671875,
+              "top": 162.845703125,
+              "right": 340.8039016723633,
+              "bottom": 198.79733276367188,
+              "left": 49.19611358642578
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0.716282,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 49.19611358642578,
+              "y": 212.63128662109375,
+              "width": 291.6077880859375,
+              "height": 111.84954833984375,
+              "top": 212.63128662109375,
+              "right": 340.8039016723633,
+              "bottom": 324.4808349609375,
+              "left": 49.19611358642578
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.95",
+        "scrollY": 5229,
+        "tier": "tier-1-hold",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.867729,
+        "nextPanelOpacity": 0.06,
+        "activeRect": {
+          "x": 24,
+          "y": 126.59375,
+          "width": 342,
+          "height": 590.796875,
+          "top": 126.59375,
+          "right": 366,
+          "bottom": 717.390625,
+          "left": 24
+        },
+        "visibleCueCount": 1,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0.0695877,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.229454040527344,
+              "y": 217.52178955078125,
+              "width": 285.54107666015625,
+              "height": 35.20368957519531,
+              "top": 217.52178955078125,
+              "right": 337.7705307006836,
+              "bottom": 252.72547912597656,
+              "left": 52.229454040527344
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0.0118372,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 52.229454040527344,
+              "y": 260.7114562988281,
+              "width": 285.54107666015625,
+              "height": 109.52261352539062,
+              "top": 260.7114562988281,
+              "right": 337.7705307006836,
+              "bottom": 370.23406982421875,
+              "left": 52.229454040527344
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      }
+    ]
+  },
+  {
+    "name": "tier-2-balanced",
+    "revealObserved": true,
+    "expectedTier": "tier-2-balanced",
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "reducedMotion": "no-preference",
+    "overrides": {
+      "hardwareConcurrency": 4,
+      "deviceMemory": 4,
+      "effectiveType": "4g",
+      "saveData": false
+    },
+    "steps": [
+      {
+        "label": "reveal",
+        "scrollY": 0,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "loop",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "",
+            "opacity": 1,
+            "color": "rgb(248, 250, 252)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 64,
+              "y": 183,
+              "width": 1152,
+              "height": 256,
+              "top": 183,
+              "right": 1216,
+              "bottom": 439,
+              "left": 64
+            }
+          },
+          {
+            "text": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+            "opacity": 1,
+            "color": "rgba(255, 255, 255, 0.7)",
+            "fontSize": "14px",
+            "rect": {
+              "x": 352,
+              "y": 471,
+              "width": 576,
+              "height": 40,
+              "top": 471,
+              "right": 928,
+              "bottom": 511,
+              "left": 352
+            }
+          }
+        ],
+        "activeText": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-2-balanced\\reveal.png"
+      },
+      {
+        "label": "hero_hold",
+        "scrollY": 693,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "loop",
+        "activePanelOpacity": 0.970612,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "",
+            "opacity": 1,
+            "color": "rgb(248, 250, 252)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 65.41058349609375,
+              "y": 188.53961181640625,
+              "width": 1149.1787109375,
+              "height": 255.37307739257812,
+              "top": 188.53961181640625,
+              "right": 1214.5892944335938,
+              "bottom": 443.9126892089844,
+              "left": 65.41058349609375
+            }
+          },
+          {
+            "text": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+            "opacity": 1,
+            "color": "rgba(255, 255, 255, 0.7)",
+            "fontSize": "14px",
+            "rect": {
+              "x": 352.7052917480469,
+              "y": 475.8343200683594,
+              "width": 574.58935546875,
+              "height": 39.902008056640625,
+              "top": 475.8343200683594,
+              "right": 927.2946472167969,
+              "bottom": 515.736328125,
+              "left": 352.7052917480469
+            }
+          }
+        ],
+        "activeText": "PERFORMANCE-FIRST CINEMATIC LANDING FOUNDATION",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-2-balanced\\hero_hold.png"
+      },
+      {
+        "label": "story",
+        "scrollY": 1940,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 1,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "История и приглашение",
+            "opacity": 1,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 113,
+              "y": 351.5,
+              "width": 1054,
+              "height": 40,
+              "top": 351.5,
+              "right": 1167,
+              "bottom": 391.5,
+              "left": 113
+            }
+          },
+          {
+            "text": "Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искрен",
+            "opacity": 1,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 256,
+              "y": 415.5,
+              "width": 768,
+              "height": 133,
+              "top": 415.5,
+              "right": 1024,
+              "bottom": 548.5,
+              "left": 256
+            }
+          }
+        ],
+        "activeText": "История и приглашение Мы приглашаем вас разделить с нами день, когда начнется новая глава нашей истории. Это будет вечер теплых встреч, искренних улыбок и красивых моментов. Нам важны ваши присутствие и поддержка. Будем ",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-2-balanced\\story.png"
+      },
+      {
+        "label": "details",
+        "scrollY": 3118,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "hold",
+        "activePanelOpacity": 0.382236,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 2,
+        "cueDetails": [
+          {
+            "text": "Главная информация",
+            "opacity": 0.213291,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 116.39793395996094,
+              "y": 250.60690307617188,
+              "width": 1047.2041015625,
+              "height": 39.742095947265625,
+              "top": 250.60690307617188,
+              "right": 1163.602035522461,
+              "bottom": 290.3489990234375,
+              "left": 116.39793395996094
+            }
+          },
+          {
+            "text": "Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образ",
+            "opacity": 0.121274,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 116.39793395996094,
+              "y": 326.2358703613281,
+              "width": 1047.2041015625,
+              "height": 365.6272888183594,
+              "top": 326.2358703613281,
+              "right": 1163.602035522461,
+              "bottom": 691.8631591796875,
+              "left": 116.39793395996094
+            }
+          }
+        ],
+        "activeText": "Главная информация Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образы в спокойной палитре. Ниже 5 оттенков, которые особенно красиво поддержат атмосф",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-2-balanced\\details.png"
+      },
+      {
+        "label": "location",
+        "scrollY": 4297,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Главная информация",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 124.593994140625,
+              "y": 286.22357177734375,
+              "width": 1030.81201171875,
+              "height": 39.1199951171875,
+              "top": 286.22357177734375,
+              "right": 1155.406005859375,
+              "bottom": 325.34356689453125,
+              "left": 124.593994140625
+            }
+          },
+          {
+            "text": "Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образ",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 124.593994140625,
+              "y": 356.63958740234375,
+              "width": 1030.81201171875,
+              "height": 359.90399169921875,
+              "top": 356.63958740234375,
+              "right": 1155.406005859375,
+              "bottom": 716.5435791015625,
+              "left": 124.593994140625
+            }
+          }
+        ],
+        "activeText": "Главная информация Тайминг 16:00 Сбор гостей 17:00 Церемония 18:00 Ужин и программа 22:30 Танцы и финал Дресс-код Будем благодарны за образы в спокойной палитре. Ниже 5 оттенков, которые особенно красиво поддержат атмосф",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-2-balanced\\location.png"
+      },
+      {
+        "label": "rsvp",
+        "scrollY": 5405,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "poster",
+        "activePanelOpacity": 0.532475,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Локация и трансфер",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 125.0209732055664,
+              "y": 344.6858215332031,
+              "width": 1029.9580078125,
+              "height": 39.08758544921875,
+              "top": 344.6858215332031,
+              "right": 1154.9789810180664,
+              "bottom": 383.7734069824219,
+              "left": 125.0209732055664
+            }
+          },
+          {
+            "text": "Локация Загородная усадьба «Белый сад» Московская область, Истринский район Как добраться На личном автомобиле парковка ",
+            "opacity": 0,
+            "color": "rgb(139, 139, 139)",
+            "fontSize": "18px",
+            "rect": {
+              "x": 125.0209732055664,
+              "y": 407.2259826660156,
+              "width": 1029.9580078125,
+              "height": 262.8641052246094,
+              "top": 407.2259826660156,
+              "right": 1154.9789810180664,
+              "bottom": 670.090087890625,
+              "left": 125.0209732055664
+            }
+          }
+        ],
+        "activeText": "Локация и трансфер Локация Загородная усадьба «Белый сад» Московская область, Истринский район Как добраться На личном автомобиле парковка на территории. Маршрут будет доступен в день мероприятия. Трансфер Для гостей буд",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-2-balanced\\rsvp.png"
+      },
+      {
+        "label": "final",
+        "scrollY": 6445,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 288.9949645996094,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 288.9949645996094,
+              "right": 1153.8249893188477,
+              "bottom": 327.9949645996094,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 335.7949523925781,
+              "width": 1027.6500244140625,
+              "height": 54.600006103515625,
+              "top": 335.7949523925781,
+              "right": 1153.8249893188477,
+              "bottom": 390.39495849609375,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false,
+        "screenshotPath": "E:\\wedding-landing\\wedding-landing\\.artifacts\\phase5-validation\\tier-2-balanced\\final.png"
+      }
+    ],
+    "rapidScroll": [
+      {
+        "label": "rapid-0.2",
+        "scrollY": 6445,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 288.9949645996094,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 288.9949645996094,
+              "right": 1153.8249893188477,
+              "bottom": 327.9949645996094,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 335.7949523925781,
+              "width": 1027.6500244140625,
+              "height": 54.600006103515625,
+              "top": 335.7949523925781,
+              "right": 1153.8249893188477,
+              "bottom": 390.39495849609375,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.55",
+        "scrollY": 6445,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 288.9949645996094,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 288.9949645996094,
+              "right": 1153.8249893188477,
+              "bottom": 327.9949645996094,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 335.7949523925781,
+              "width": 1027.6500244140625,
+              "height": 54.600006103515625,
+              "top": 335.7949523925781,
+              "right": 1153.8249893188477,
+              "bottom": 390.39495849609375,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.82",
+        "scrollY": 6445,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 288.9949645996094,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 288.9949645996094,
+              "right": 1153.8249893188477,
+              "bottom": 327.9949645996094,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 335.7949523925781,
+              "width": 1027.6500244140625,
+              "height": 54.600006103515625,
+              "top": 335.7949523925781,
+              "right": 1153.8249893188477,
+              "bottom": 390.39495849609375,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.34",
+        "scrollY": 6445,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 288.9949645996094,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 288.9949645996094,
+              "right": 1153.8249893188477,
+              "bottom": 327.9949645996094,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 335.7949523925781,
+              "width": 1027.6500244140625,
+              "height": 54.600006103515625,
+              "top": 335.7949523925781,
+              "right": 1153.8249893188477,
+              "bottom": 390.39495849609375,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      },
+      {
+        "label": "rapid-0.95",
+        "scrollY": 6445,
+        "tier": "tier-2-balanced",
+        "revealState": "revealed",
+        "fallbackMode": "none",
+        "mediaMode": "scrub",
+        "activePanelOpacity": 0.82,
+        "nextPanelOpacity": 0.1,
+        "activeRect": {
+          "x": 64,
+          "y": 135,
+          "width": 1152,
+          "height": 630,
+          "top": 135,
+          "right": 1216,
+          "bottom": 765,
+          "left": 64
+        },
+        "visibleCueCount": 0,
+        "cueDetails": [
+          {
+            "text": "Анкета гостя",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 288.9949645996094,
+              "width": 1027.6500244140625,
+              "height": 39,
+              "top": 288.9949645996094,
+              "right": 1153.8249893188477,
+              "bottom": 327.9949645996094,
+              "left": 126.17496490478516
+            }
+          },
+          {
+            "text": "Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня.",
+            "opacity": 0,
+            "color": "rgb(44, 44, 44)",
+            "fontSize": "16px",
+            "rect": {
+              "x": 126.17496490478516,
+              "y": 335.7949523925781,
+              "width": 1027.6500244140625,
+              "height": 54.600006103515625,
+              "top": 335.7949523925781,
+              "right": 1153.8249893188477,
+              "bottom": 390.39495849609375,
+              "left": 126.17496490478516
+            }
+          }
+        ],
+        "activeText": "Анкета гостя Информация поможет нам при организации торжества. Мы будем ждать ответ до 30 июня. Сможете ли вы присутствовать на нашем торжестве?* Выберите вариант Буду Буду +1 Не буду Укажите ваши Имя и Фамилию* Потребуе",
+        "blankRisk": false
+      }
+    ]
+  }
+]
