@@ -1,0 +1,133 @@
+{
+  "generatedAt": "2026-03-13T13:24:26.143Z",
+  "hero": {
+    "scenario": "hero-top",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "continuityState": "video",
+    "horizontalOverflow": 0,
+    "scrollY": 0,
+    "rsvpHeadingRect": null,
+    "panel": null,
+    "panelGlow": null,
+    "input": null,
+    "select": null,
+    "button": null
+  },
+  "nonRsvpScene": {
+    "scenario": "details-mid",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "continuityState": "video",
+    "horizontalOverflow": 0,
+    "scrollY": 3915,
+    "rsvpHeadingRect": null,
+    "panel": null,
+    "panelGlow": null,
+    "input": null,
+    "select": null,
+    "button": null
+  },
+  "rsvpBoundaryEnter": {
+    "scenario": "rsvp-boundary-enter",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "continuityState": "video",
+    "horizontalOverflow": 0,
+    "scrollY": 5638,
+    "rsvpHeadingRect": null,
+    "panel": {
+      "background": "linear-gradient(rgba(236, 227, 216, 0.92), rgba(224, 214, 202, 0.86))",
+      "backdropFilter": "blur(6px) saturate(1)",
+      "borderColor": "rgba(255, 255, 255, 0.38)",
+      "boxShadow": "rgba(3, 6, 17, 0.28) 0px 34px 96px 0px, rgba(3, 6, 17, 0.16) 0px 12px 28px 0px, rgba(255, 255, 255, 0.26) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px 0px 0px 1px inset"
+    },
+    "panelGlow": "linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)), radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0) 48%)",
+    "input": {
+      "background": "linear-gradient(rgba(255, 255, 255, 0.92), rgba(243, 237, 230, 0.86))",
+      "borderColor": "rgba(15, 23, 42, 0.22)",
+      "boxShadow": "rgba(15, 23, 42, 0.1) 0px 10px 24px 0px, rgba(255, 255, 255, 0.68) 0px 1px 0px 0px inset",
+      "color": "rgb(44, 44, 44)"
+    },
+    "select": {
+      "background": "linear-gradient(rgba(255, 255, 255, 0.92), rgba(243, 237, 230, 0.86))",
+      "borderColor": "rgba(15, 23, 42, 0.22)",
+      "boxShadow": "rgba(15, 23, 42, 0.1) 0px 10px 24px 0px, rgba(255, 255, 255, 0.68) 0px 1px 0px 0px inset",
+      "color": "rgb(44, 44, 44)"
+    },
+    "button": {
+      "background": "linear-gradient(rgb(44, 52, 68), rgb(26, 34, 48))",
+      "color": "rgb(255, 255, 255)",
+      "boxShadow": "rgba(15, 23, 42, 0.22) 0px 18px 34px 0px, rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset",
+      "borderColor": "rgba(255, 255, 255, 0.18)"
+    }
+  },
+  "rsvpScene": {
+    "scenario": "rsvp-scene",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "continuityState": "poster",
+    "horizontalOverflow": 0,
+    "scrollY": 6421,
+    "rsvpHeadingRect": null,
+    "panel": {
+      "background": "linear-gradient(rgba(236, 227, 216, 0.92), rgba(224, 214, 202, 0.86))",
+      "backdropFilter": "blur(6px) saturate(1)",
+      "borderColor": "rgba(255, 255, 255, 0.38)",
+      "boxShadow": "rgba(3, 6, 17, 0.28) 0px 34px 96px 0px, rgba(3, 6, 17, 0.16) 0px 12px 28px 0px, rgba(255, 255, 255, 0.26) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px 0px 0px 1px inset"
+    },
+    "panelGlow": "linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)), radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0) 48%)",
+    "input": {
+      "background": "linear-gradient(rgba(255, 255, 255, 0.92), rgba(243, 237, 230, 0.86))",
+      "borderColor": "rgba(15, 23, 42, 0.22)",
+      "boxShadow": "rgba(15, 23, 42, 0.1) 0px 10px 24px 0px, rgba(255, 255, 255, 0.68) 0px 1px 0px 0px inset",
+      "color": "rgb(44, 44, 44)"
+    },
+    "select": {
+      "background": "linear-gradient(rgba(255, 255, 255, 0.92), rgba(243, 237, 230, 0.86))",
+      "borderColor": "rgba(15, 23, 42, 0.22)",
+      "boxShadow": "rgba(15, 23, 42, 0.1) 0px 10px 24px 0px, rgba(255, 255, 255, 0.68) 0px 1px 0px 0px inset",
+      "color": "rgb(44, 44, 44)"
+    },
+    "button": {
+      "background": "linear-gradient(rgb(44, 52, 68), rgb(26, 34, 48))",
+      "color": "rgb(255, 255, 255)",
+      "boxShadow": "rgba(15, 23, 42, 0.22) 0px 18px 34px 0px, rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset",
+      "borderColor": "rgba(255, 255, 255, 0.18)"
+    }
+  },
+  "rsvpBoundaryRapid": {
+    "scenario": "rsvp-boundary-rapid",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "continuityState": "poster",
+    "horizontalOverflow": 0,
+    "scrollY": 6107,
+    "rsvpHeadingRect": null,
+    "panel": {
+      "background": "linear-gradient(rgba(236, 227, 216, 0.92), rgba(224, 214, 202, 0.86))",
+      "backdropFilter": "blur(6px) saturate(1)",
+      "borderColor": "rgba(255, 255, 255, 0.38)",
+      "boxShadow": "rgba(3, 6, 17, 0.28) 0px 34px 96px 0px, rgba(3, 6, 17, 0.16) 0px 12px 28px 0px, rgba(255, 255, 255, 0.26) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px 0px 0px 1px inset"
+    },
+    "panelGlow": "linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01)), radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0) 48%)",
+    "input": {
+      "background": "linear-gradient(rgba(255, 255, 255, 0.92), rgba(243, 237, 230, 0.86))",
+      "borderColor": "rgba(15, 23, 42, 0.22)",
+      "boxShadow": "rgba(15, 23, 42, 0.1) 0px 10px 24px 0px, rgba(255, 255, 255, 0.68) 0px 1px 0px 0px inset",
+      "color": "rgb(44, 44, 44)"
+    },
+    "select": {
+      "background": "linear-gradient(rgba(255, 255, 255, 0.92), rgba(243, 237, 230, 0.86))",
+      "borderColor": "rgba(15, 23, 42, 0.22)",
+      "boxShadow": "rgba(15, 23, 42, 0.1) 0px 10px 24px 0px, rgba(255, 255, 255, 0.68) 0px 1px 0px 0px inset",
+      "color": "rgb(44, 44, 44)"
+    },
+    "button": {
+      "background": "linear-gradient(rgb(44, 52, 68), rgb(26, 34, 48))",
+      "color": "rgb(255, 255, 255)",
+      "boxShadow": "rgba(15, 23, 42, 0.22) 0px 18px 34px 0px, rgba(255, 255, 255, 0.08) 0px 1px 0px 0px inset",
+      "borderColor": "rgba(255, 255, 255, 0.18)"
+    }
+  }
+}

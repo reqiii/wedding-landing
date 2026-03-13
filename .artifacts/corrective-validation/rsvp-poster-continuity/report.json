@@ -1,0 +1,89 @@
+{
+  "generatedAt": "2026-03-13T13:35:36.069Z",
+  "hero": {
+    "scenario": "hero",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "activePanel": "intro",
+    "continuityState": "video",
+    "rsvpPosterContinuity": "false",
+    "horizontalOverflow": 0,
+    "scrollY": 0,
+    "poster": null,
+    "tint": null,
+    "overlay": {
+      "opacity": "0.24",
+      "backdropFilter": "none"
+    }
+  },
+  "story": {
+    "scenario": "story",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "activePanel": "story",
+    "continuityState": "video",
+    "rsvpPosterContinuity": "false",
+    "horizontalOverflow": 0,
+    "scrollY": 1958,
+    "poster": null,
+    "tint": null,
+    "overlay": {
+      "opacity": "0.24",
+      "backdropFilter": "none"
+    }
+  },
+  "location": {
+    "scenario": "location",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "activePanel": "details",
+    "continuityState": "video",
+    "rsvpPosterContinuity": "false",
+    "horizontalOverflow": 0,
+    "scrollY": 4855,
+    "poster": null,
+    "tint": null,
+    "overlay": {
+      "opacity": "0.24",
+      "backdropFilter": "none"
+    }
+  },
+  "rsvpTransition": {
+    "scenario": "rsvp-transition",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "activePanel": "location",
+    "continuityState": "video",
+    "rsvpPosterContinuity": "false",
+    "horizontalOverflow": 0,
+    "scrollY": 5638,
+    "poster": null,
+    "tint": null,
+    "overlay": {
+      "opacity": "0.24",
+      "backdropFilter": "none"
+    }
+  },
+  "rsvp": {
+    "scenario": "rsvp",
+    "tier": "tier-3-premium",
+    "revealState": "revealed",
+    "activePanel": "rsvp",
+    "continuityState": "poster",
+    "rsvpPosterContinuity": "true",
+    "horizontalOverflow": 0,
+    "scrollY": 6421,
+    "poster": {
+      "opacity": "0.96",
+      "filter": "saturate(1) contrast(1.01) brightness(0.92)",
+      "transform": "none"
+    },
+    "tint": {
+      "opacity": "0.28"
+    },
+    "overlay": {
+      "opacity": "0.2",
+      "backdropFilter": "none"
+    }
+  }
+}

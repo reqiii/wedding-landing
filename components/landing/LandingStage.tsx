@@ -53,6 +53,10 @@ export function LandingStage({
   const prefersReducedMotion = tierSnapshot?.prefersReducedMotion ?? false
   const allowPremiumEffects = performanceBudget?.allowPremiumEffects ?? false
   const mountedPanelCount = renderedPanelSegments.length
+  const showContinuityLayer =
+    activeMode === 'poster' || readiness === 'idle' || readiness === 'failed'
+  const activePanelKey = resolvedActiveSegment?.panelKey ?? null
+  const isRsvpPosterContinuity = activePanelKey === 'rsvp' && showContinuityLayer
   const showStageOverlay = visualTier === 'tier-2-balanced' || allowPremiumEffects
   const showControlsRail = showStageOverlay && !prefersReducedMotion
 
@@ -79,7 +83,10 @@ export function LandingStage({
     <div
       ref={stageRef}
       className={styles.stickyStage}
+      data-active-panel={activePanelKey ?? 'none'}
       data-visual-tier={visualTier}
+      data-continuity-state={showContinuityLayer ? 'poster' : 'video'}
+      data-rsvp-poster-continuity={isRsvpPosterContinuity ? 'true' : 'false'}
       data-premium-effects={allowPremiumEffects ? 'true' : 'false'}
       data-reduced-motion={prefersReducedMotion ? 'true' : 'false'}
     >
@@ -97,19 +104,17 @@ export function LandingStage({
         />
       </div>
 
-      <div className={styles.continuityLayer} aria-hidden="true">
-        <div
-          className={styles.posterLayer}
-          style={
-            activePosterSrc
-              ? {
-                  backgroundImage: `url("${activePosterSrc}")`,
-                }
-              : undefined
-          }
-        />
-        <div className={styles.posterTint} />
-      </div>
+      {showContinuityLayer && activePosterSrc ? (
+        <div className={styles.continuityLayer} aria-hidden="true">
+          <div
+            className={styles.posterLayer}
+            style={{
+              backgroundImage: `url("${activePosterSrc}")`,
+            }}
+          />
+          <div className={styles.posterTint} />
+        </div>
+      ) : null}
 
       <div className={styles.panelLayer}>
         <div className={styles.panelStage}>

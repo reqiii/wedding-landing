@@ -7,12 +7,25 @@ import { rsvpSubmissionSchema, type RSVPSubmissionFormData } from '@/lib/validat
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
+import { cn } from '@/lib/utils'
 
 type RSVPFormProps = {
   controlSurface?: 'glass' | 'landing'
+  className?: string
+  controlClassName?: string
+  submitClassName?: string
+  successClassName?: string
+  errorClassName?: string
 }
 
-export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
+export function RSVPForm({
+  controlSurface = 'glass',
+  className,
+  controlClassName,
+  submitClassName,
+  successClassName,
+  errorClassName,
+}: RSVPFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
@@ -53,7 +66,7 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
 
   if (submitStatus === 'success') {
     return (
-      <div className="space-y-4 text-center" role="status" aria-live="polite">
+      <div className={cn('space-y-4 text-center', successClassName)} role="status" aria-live="polite">
         <div className="text-3xl">✨</div>
         <h3 className="font-display text-2xl text-dark-gray">Спасибо!</h3>
         <p className="text-medium-gray">
@@ -61,6 +74,8 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
         </p>
         <Button
           type="button"
+          variant="solid"
+          className={submitClassName}
           onClick={() => {
             setSubmitStatus('idle')
           }}
@@ -72,7 +87,7 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className={cn('space-y-4', className)}>
       <input
         type="text"
         {...register('honeypot')}
@@ -87,6 +102,7 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
         error={errors.attendance?.message}
         required
         surface={controlSurface}
+        className={controlClassName}
         options={[
           { value: '', label: 'Выберите вариант' },
           { value: 'attending', label: 'Буду' },
@@ -101,6 +117,7 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
         error={errors.names?.message}
         required
         surface={controlSurface}
+        className={controlClassName}
         autoComplete="name"
         placeholder="Если вы будете парой или семьей, укажите всех"
       />
@@ -111,6 +128,7 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
         error={errors.transfer?.message}
         required
         surface={controlSurface}
+        className={controlClassName}
         options={[
           { value: '', label: 'Выберите вариант' },
           { value: 'required', label: 'Потребуется' },
@@ -119,7 +137,7 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
       />
 
       {submitStatus === 'error' && (
-        <p className="text-soft-rose text-sm" role="alert" aria-live="polite">
+        <p className={cn('text-soft-rose text-sm', errorClassName)} role="alert" aria-live="polite">
           Что-то пошло не так. Пожалуйста, попробуйте еще раз.
         </p>
       )}
@@ -127,7 +145,7 @@ export function RSVPForm({ controlSurface = 'glass' }: RSVPFormProps) {
       <Button
         type="submit"
         variant="solid"
-        className="w-full"
+        className={cn('w-full', submitClassName)}
         disabled={isSubmitting}
       >
         {isSubmitting ? 'Отправляем...' : 'Отправить'}

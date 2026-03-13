@@ -1,0 +1,357 @@
+{
+  "generatedAt": "2026-03-13T12:54:11.910Z",
+  "desktop": {
+    "hero": {
+      "scenario": "desktop-hero",
+      "tier": "tier-3-premium",
+      "revealState": "revealed",
+      "continuityState": "video",
+      "continuityNodePresent": false,
+      "videoPresent": true,
+      "overlayBackdropFilter": "none",
+      "overlayOpacity": "0.24",
+      "horizontalOverflow": 0,
+      "scrollY": 0,
+      "centerStack": [
+        {
+          "tag": "DIV",
+          "cls": "w-full text-center",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "flex min-h-[70dvh] items-start justify-center pt-[min(8vh,3rem)]",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelMotion__s41vA",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelFrame__TGbdM",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelStack__ELxhU",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelStage__tI5Vx",
+          "continuityState": null,
+          "premium": null
+        }
+      ]
+    },
+    "slow-25": {
+      "scenario": "desktop-slow-25",
+      "tier": "tier-3-premium",
+      "revealState": "revealed",
+      "continuityState": "video",
+      "continuityNodePresent": false,
+      "videoPresent": true,
+      "overlayBackdropFilter": "none",
+      "overlayOpacity": "0.24",
+      "horizontalOverflow": 0,
+      "scrollY": 1958,
+      "centerStack": [
+        {
+          "tag": "P",
+          "cls": "",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_cue__zfELH space-y-4 mx-auto max-w-3xl text-lg leading-relaxed text-medium-gray",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "space-y-6 text-center",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassContent__PDWbz p-[clamp(1.5rem,4vw,3rem)] LandingSurface_surfaceContent__lxMsk LandingSurface_surfaceThemeSoftContent__Vb7ze",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassRoot__lYpBm LandingGlass_panel__19H5G LandingGlass_tierPremium__tSTDz LandingGlass_themeSoft__un2b6 LandingSurface_surfaceRoot__DbNDN LandingSurface_surfaceTierPremium___6YQU LandingSurface_surfaceThemeSoft__QvidR",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelMotion__s41vA",
+          "continuityState": null,
+          "premium": null
+        }
+      ]
+    },
+    "slow-50": {
+      "scenario": "desktop-slow-50",
+      "tier": "tier-3-premium",
+      "revealState": "revealed",
+      "continuityState": "video",
+      "continuityNodePresent": false,
+      "videoPresent": true,
+      "overlayBackdropFilter": "none",
+      "overlayOpacity": "0.24",
+      "horizontalOverflow": 0,
+      "scrollY": 3915,
+      "centerStack": [
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_cue__zfELH space-y-4 grid grid-cols-1 gap-6 text-medium-gray md:grid-cols-2",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "space-y-8",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassContent__PDWbz p-[clamp(1.5rem,4vw,3rem)] LandingSurface_surfaceContent__lxMsk LandingSurface_surfaceThemeSoftContent__Vb7ze",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassRoot__lYpBm LandingGlass_panel__19H5G LandingGlass_tierPremium__tSTDz LandingGlass_themeSoft__un2b6 LandingSurface_surfaceRoot__DbNDN LandingSurface_surfaceTierPremium___6YQU LandingSurface_surfaceThemeSoft__QvidR",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelMotion__s41vA",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelFrame__TGbdM",
+          "continuityState": null,
+          "premium": null
+        }
+      ]
+    },
+    "slow-75": {
+      "scenario": "desktop-slow-75",
+      "tier": "tier-3-premium",
+      "revealState": "revealed",
+      "continuityState": "video",
+      "continuityNodePresent": false,
+      "videoPresent": true,
+      "overlayBackdropFilter": "none",
+      "overlayOpacity": "0.24",
+      "horizontalOverflow": 0,
+      "scrollY": 5873,
+      "centerStack": [
+        {
+          "tag": "P",
+          "cls": "",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_cue__zfELH space-y-4 text-lg leading-relaxed text-medium-gray",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "space-y-6",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassContent__PDWbz p-[clamp(1.5rem,4vw,3rem)] LandingSurface_surfaceContent__lxMsk LandingSurface_surfaceThemeSoftContent__Vb7ze",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassRoot__lYpBm LandingGlass_panel__19H5G LandingGlass_tierPremium__tSTDz LandingGlass_themeSoft__un2b6 LandingSurface_surfaceRoot__DbNDN LandingSurface_surfaceTierPremium___6YQU LandingSurface_surfaceThemeSoft__QvidR",
+          "continuityState": null,
+          "premium": null
+        }
+      ]
+    },
+    "rapidReturnTop": {
+      "scenario": "desktop-rapid-return-top",
+      "tier": "tier-3-premium",
+      "revealState": "revealed",
+      "continuityState": "video",
+      "continuityNodePresent": false,
+      "videoPresent": true,
+      "overlayBackdropFilter": "none",
+      "overlayOpacity": "0.24",
+      "horizontalOverflow": 0,
+      "scrollY": 0,
+      "centerStack": [
+        {
+          "tag": "DIV",
+          "cls": "w-full text-center",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "flex min-h-[70dvh] items-start justify-center pt-[min(8vh,3rem)]",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelMotion__s41vA",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelFrame__TGbdM",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelStack__ELxhU",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelStage__tI5Vx",
+          "continuityState": null,
+          "premium": null
+        }
+      ]
+    }
+  },
+  "mobile": {
+    "hero": {
+      "scenario": "mobile-hero",
+      "tier": "tier-2-balanced",
+      "revealState": "revealed",
+      "continuityState": "video",
+      "continuityNodePresent": false,
+      "videoPresent": true,
+      "overlayBackdropFilter": "none",
+      "overlayOpacity": "0.2",
+      "horizontalOverflow": 0,
+      "scrollY": 0,
+      "centerStack": [
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_cue__zfELH space-y-2 mx-auto mt-8 max-w-xl text-sm uppercase tracking-[0.32em] text-white/70",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "w-full text-center",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "flex min-h-[70dvh] items-start justify-center pt-[min(8vh,3rem)]",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelMotion__s41vA",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelFrame__TGbdM",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelStack__ELxhU",
+          "continuityState": null,
+          "premium": null
+        }
+      ]
+    },
+    "slow35": {
+      "scenario": "mobile-slow-35",
+      "tier": "tier-2-balanced",
+      "revealState": "revealed",
+      "continuityState": "video",
+      "continuityNodePresent": false,
+      "videoPresent": true,
+      "overlayBackdropFilter": "none",
+      "overlayOpacity": "0.2",
+      "horizontalOverflow": 0,
+      "scrollY": 2570,
+      "centerStack": [
+        {
+          "tag": "P",
+          "cls": "",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_cue__zfELH space-y-4 mx-auto max-w-3xl text-lg leading-relaxed text-medium-gray",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "space-y-6 text-center",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassContent__PDWbz p-[clamp(1.5rem,4vw,3rem)] LandingSurface_surfaceContent__lxMsk LandingSurface_surfaceThemeSoftContent__Vb7ze",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingGlass_glassRoot__lYpBm LandingGlass_panel__19H5G LandingGlass_tierBalanced__FfFvM LandingGlass_themeSoft__un2b6 LandingSurface_surfaceRoot__DbNDN LandingSurface_surfaceTierBalanced__ECv18 LandingSurface_surfaceThemeSoft__QvidR",
+          "continuityState": null,
+          "premium": null
+        },
+        {
+          "tag": "DIV",
+          "cls": "LandingShell_panelMotion__s41vA",
+          "continuityState": null,
+          "premium": null
+        }
+      ]
+    }
+  }
+}
