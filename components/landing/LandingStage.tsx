@@ -4,7 +4,10 @@ import { useEffect, useRef } from 'react'
 import styles from '@/components/landing/LandingShell.module.css'
 import { LandingPanelFrame } from '@/components/landing/panels/LandingPanelFrame'
 import { GlassOverlay } from '@/components/landing/ui/GlassPanel'
-import { getVisibleLandingSegments } from '@/lib/landing/scenes/sceneSelectors'
+import {
+  getMountedLandingPanelSegments,
+  getResolvedLandingContentSegment,
+} from '@/lib/landing/scenes/sceneSelectors'
 import type { LandingSceneManifest } from '@/lib/landing/scenes/sceneTypes'
 import { useLandingRuntimeSelector, type LandingRuntimeStore } from '@/lib/landing/runtime/runtimeStore'
 
@@ -31,17 +34,19 @@ export function LandingStage({
     store,
     (state) => state.motionPolicy?.mountStrategy ?? 'active-neighbors'
   )
-  const visibleSegments = getVisibleLandingSegments(
+  const resolvedActiveSegment = getResolvedLandingContentSegment(
+    manifest,
+    activeSegmentId
+  )
+  const mountedPanelSegments = getMountedLandingPanelSegments(
     manifest,
     activeSegmentId,
-    mountStrategy === 'active-only' ? 0 : 1
+    mountStrategy !== 'active-only'
   )
-  const activeIndex = visibleSegments.findIndex((segment) => segment.id === activeSegmentId)
-  const resolvedActiveIndex = activeIndex === -1 ? 0 : activeIndex
   const visualTier = tierSnapshot?.tier ?? 'tier-1-hold'
   const prefersReducedMotion = tierSnapshot?.prefersReducedMotion ?? false
   const allowPremiumEffects = performanceBudget?.allowPremiumEffects ?? false
-  const mountedPanelCount = visibleSegments.filter((segment) => segment.panelKey).length
+  const mountedPanelCount = mountedPanelSegments.length
   const showStageOverlay = visualTier === 'tier-2-balanced' || allowPremiumEffects
   const showControlsRail = showStageOverlay && !prefersReducedMotion
 
@@ -103,21 +108,12 @@ export function LandingStage({
       <div className={styles.panelLayer}>
         <div className={styles.panelStage}>
           <div className={styles.panelStack}>
-            {visibleSegments.map((segment, index) => {
-              if (!segment.panelKey) {
-                return null
-              }
-
-              const isActive = segment.id === activeSegmentId
+            {mountedPanelSegments.map((segment, index) => {
+              const isActive = segment.id === resolvedActiveSegment?.id
               const segmentReadyState = segment.media.assetId
                 ? assetReadiness[segment.media.assetId]
                 : undefined
-              const position =
-                index < resolvedActiveIndex
-                  ? 'previous'
-                  : index > resolvedActiveIndex
-                    ? 'next'
-                    : 'current'
+              const position = index === 0 ? 'current' : 'next'
 
               return (
                 <LandingPanelFrame
