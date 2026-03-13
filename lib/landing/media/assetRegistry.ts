@@ -56,21 +56,35 @@ export function createLandingAssetRegistry(
 ): LandingAssetRegistry {
   const assetCache = new Map<string, LandingResolvedAsset>()
 
+  const resolveVideoSourceProfile = (policy: LandingMediaPolicy) => {
+    switch (policy.tier) {
+      case 'tier-1-hold':
+        return 'mobile'
+      case 'tier-2-balanced':
+      case 'tier-3-premium':
+        return 'desktop'
+      default:
+        return policy.deviceProfile
+    }
+  }
+
   const getAsset = (assetId: LandingAssetId, policy: LandingMediaPolicy): LandingResolvedAsset => {
-    const cacheKey = `${assetId}:${policy.deviceProfile}`
+    const cacheKey = `${assetId}:${policy.tier}:${policy.deviceProfile}`
     const cached = assetCache.get(cacheKey)
     if (cached) {
       return cached
     }
 
     const definition = getLandingAssetDefinition(assetId)
+    const sourceProfile =
+      definition.kind === 'video' ? resolveVideoSourceProfile(policy) : policy.deviceProfile
     const asset: LandingResolvedAsset = {
       assetId,
       kind: definition.kind,
-      src: getLandingAssetSource(assetId, policy.deviceProfile),
+      src: getLandingAssetSource(assetId, sourceProfile),
       posterSrc:
         getLandingPosterSource(assetId, policy.deviceProfile) ??
-        getLandingAssetSource(assetId, policy.deviceProfile),
+        getLandingAssetSource(assetId, sourceProfile),
     }
 
     assetCache.set(cacheKey, asset)
