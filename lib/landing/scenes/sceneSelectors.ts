@@ -75,6 +75,13 @@ export function getResolvedLandingContentSegment(
   return fallbackSegment
 }
 
+export function getResolvedLandingPanelKey(
+  manifest: LandingSceneManifest,
+  activeSegmentId: LandingSegmentId | null
+) {
+  return getResolvedLandingContentSegment(manifest, activeSegmentId)?.panelKey ?? null
+}
+
 export function getNextLandingContentSegment(
   manifest: LandingSceneManifest,
   segmentId: LandingSegmentId | null
@@ -108,12 +115,17 @@ export function getMountedLandingPanelSegments(
     return []
   }
 
+  const mountedSegments = [primarySegment]
   if (!includeUpcoming) {
-    return [primarySegment]
+    return mountedSegments
   }
 
   const upcomingSegment = getNextLandingContentSegment(manifest, primarySegment.id)
-  return upcomingSegment ? [primarySegment, upcomingSegment] : [primarySegment]
+  if (upcomingSegment && upcomingSegment.id !== primarySegment.id) {
+    mountedSegments.push(upcomingSegment)
+  }
+
+  return mountedSegments.slice(0, 2)
 }
 
 export function getLandingWarmupTargets(

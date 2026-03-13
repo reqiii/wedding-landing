@@ -43,10 +43,16 @@ export function LandingStage({
     activeSegmentId,
     mountStrategy !== 'active-only'
   )
+  const renderedPanelSegments =
+    mountedPanelSegments.length > 0
+      ? mountedPanelSegments
+      : resolvedActiveSegment
+        ? [resolvedActiveSegment]
+        : []
   const visualTier = tierSnapshot?.tier ?? 'tier-1-hold'
   const prefersReducedMotion = tierSnapshot?.prefersReducedMotion ?? false
   const allowPremiumEffects = performanceBudget?.allowPremiumEffects ?? false
-  const mountedPanelCount = mountedPanelSegments.length
+  const mountedPanelCount = renderedPanelSegments.length
   const showStageOverlay = visualTier === 'tier-2-balanced' || allowPremiumEffects
   const showControlsRail = showStageOverlay && !prefersReducedMotion
 
@@ -108,7 +114,7 @@ export function LandingStage({
       <div className={styles.panelLayer}>
         <div className={styles.panelStage}>
           <div className={styles.panelStack}>
-            {mountedPanelSegments.map((segment, index) => {
+            {renderedPanelSegments.map((segment, index) => {
               const isActive = segment.id === resolvedActiveSegment?.id
               const segmentReadyState = segment.media.assetId
                 ? assetReadiness[segment.media.assetId]

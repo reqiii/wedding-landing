@@ -136,7 +136,7 @@
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  transition: opacity 220ms ease, transform 260ms ease;
+  transition: transform 260ms ease;
   transform: translate3d(0, 1rem, 0);
 }
 
